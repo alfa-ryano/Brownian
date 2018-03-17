@@ -100,3 +100,4 @@ ENV/
 
 #custom
 .idea
+.idea/
