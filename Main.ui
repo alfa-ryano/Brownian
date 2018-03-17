@@ -206,7 +206,7 @@
        <enum>QLayout::SetDefaultConstraint</enum>
       </property>
       <item>
-       <widget class="QPushButton" name="pushButtonStart">
+       <widget class="QPushButton" name="buttonStart">
         <property name="font">
          <font>
           <pointsize>16</pointsize>
@@ -220,10 +220,10 @@
        </widget>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="layoutMatplotlibPrice"/>
+       <layout class="QHBoxLayout" name="layoutGraphPrice"/>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="layoutMatplotlibDelta"/>
+       <layout class="QHBoxLayout" name="layoutGraphDelta"/>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -294,6 +294,15 @@
         <layout class="QVBoxLayout" name="verticalLayout_4">
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="1,2,2,2,2,2,2,2,2,2,1">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
            <item>
             <widget class="QLabel" name="label_16">
              <property name="font">
@@ -301,11 +310,20 @@
                <pointsize>8</pointsize>
               </font>
              </property>
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="lineWidth">
+              <number>0</number>
+             </property>
              <property name="text">
               <string>0</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+             <property name="indent">
+              <number>0</number>
              </property>
             </widget>
            </item>
@@ -316,11 +334,20 @@
                <pointsize>8</pointsize>
               </font>
              </property>
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="lineWidth">
+              <number>0</number>
+             </property>
              <property name="text">
               <string>10</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
+             </property>
+             <property name="indent">
+              <number>0</number>
              </property>
             </widget>
            </item>
@@ -331,11 +358,20 @@
                <pointsize>8</pointsize>
               </font>
              </property>
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="lineWidth">
+              <number>0</number>
+             </property>
              <property name="text">
               <string>20</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
+             </property>
+             <property name="indent">
+              <number>0</number>
              </property>
             </widget>
            </item>
@@ -346,11 +382,20 @@
                <pointsize>8</pointsize>
               </font>
              </property>
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="lineWidth">
+              <number>0</number>
+             </property>
              <property name="text">
               <string>30</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
+             </property>
+             <property name="indent">
+              <number>0</number>
              </property>
             </widget>
            </item>
@@ -361,11 +406,20 @@
                <pointsize>8</pointsize>
               </font>
              </property>
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="lineWidth">
+              <number>0</number>
+             </property>
              <property name="text">
               <string>40</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
+             </property>
+             <property name="indent">
+              <number>0</number>
              </property>
             </widget>
            </item>
@@ -376,11 +430,20 @@
                <pointsize>8</pointsize>
               </font>
              </property>
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="lineWidth">
+              <number>0</number>
+             </property>
              <property name="text">
               <string>50</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
+             </property>
+             <property name="indent">
+              <number>0</number>
              </property>
             </widget>
            </item>
@@ -391,11 +454,20 @@
                <pointsize>8</pointsize>
               </font>
              </property>
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="lineWidth">
+              <number>0</number>
+             </property>
              <property name="text">
               <string>60</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
+             </property>
+             <property name="indent">
+              <number>0</number>
              </property>
             </widget>
            </item>
@@ -406,11 +478,20 @@
                <pointsize>8</pointsize>
               </font>
              </property>
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="lineWidth">
+              <number>0</number>
+             </property>
              <property name="text">
               <string>70</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
+             </property>
+             <property name="indent">
+              <number>0</number>
              </property>
             </widget>
            </item>
@@ -421,11 +502,20 @@
                <pointsize>8</pointsize>
               </font>
              </property>
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="lineWidth">
+              <number>0</number>
+             </property>
              <property name="text">
               <string>80</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
+             </property>
+             <property name="indent">
+              <number>0</number>
              </property>
             </widget>
            </item>
@@ -436,11 +526,20 @@
                <pointsize>8</pointsize>
               </font>
              </property>
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="lineWidth">
+              <number>0</number>
+             </property>
              <property name="text">
               <string>90</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
+             </property>
+             <property name="indent">
+              <number>0</number>
              </property>
             </widget>
            </item>
@@ -451,11 +550,20 @@
                <pointsize>8</pointsize>
               </font>
              </property>
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="lineWidth">
+              <number>0</number>
+             </property>
              <property name="text">
               <string>100</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+             <property name="indent">
+              <number>0</number>
              </property>
             </widget>
            </item>
@@ -465,6 +573,9 @@
           <layout class="QHBoxLayout" name="horizontalLayout_6">
            <item>
             <widget class="QSlider" name="horizontalSlider">
+             <property name="maximum">
+              <number>100</number>
+             </property>
              <property name="sliderPosition">
               <number>50</number>
              </property>

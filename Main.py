@@ -1,8 +1,10 @@
 import sys
 from PyQt4 import QtGui, uic
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
+import matplotlib.pyplot as pltPrice
+import matplotlib.pyplot as pltDelta
+import matplotlib.animation as animationPrice
+import matplotlib.animation as animationDelta
 from matplotlib.figure import Figure
 import numpy as np
 
@@ -10,34 +12,66 @@ class Main(QtGui.QMainWindow):
     def __init__(self):
         super(Main, self).__init__()
 
-        self.line_ani_1 = None
-        self.line_ani_2 = None
+        self.animationPrice = None
+        self.animationDelta = None
 
         uic.loadUi('Main.ui', self)
-        self.pushButtonBuy.clicked.connect(self.on_push_button_buy_clicked)
-        self.pushButtonStart.clicked.connect(self.on_push_button_start_clicked)
-        self.figure = plt.figure()
-        self.canvas = FigureCanvas(self.figure)
-        self.graphLayout.addWidget(self.canvas)
+        self.buttonApply.clicked.connect(self.on_push_button_buy_clicked)
+        self.buttonStart.clicked.connect(self.on_push_button_start_clicked)
+
+        self.figurePrice = pltPrice.figure()
+        self.canvasPrice = FigureCanvas(self.figurePrice)
+        self.layoutGraphPrice.addWidget(self.canvasPrice)
+        pltPrice.xlim(0, 100)
+        pltPrice.ylim(0, 45)
+        pltPrice.xlabel('time')
+        pltPrice.title('price')
+        pltPrice.grid()
+
+        self.figureDelta = pltDelta.figure()
+        self.canvasDelta = FigureCanvas(self.figureDelta)
+        self.layoutGraphDelta.addWidget(self.canvasDelta)
+        pltDelta.xlim(0, 100)
+        pltDelta.ylim(0, 45)
+        pltDelta.xlabel('time')
+        pltDelta.title('price')
+        pltDelta.grid()
 
         print "AAA"
 
     def on_push_button_start_clicked(self):
-        if self.line_ani_1 != None:
-            self.line_ani_1.event_source.stop()
-        if self.line_ani_2 != None:
-            self.line_ani_2.event_source.stop()
 
-        self.canvas.figure.clear()
+        if self.animationPrice != None:
+            self.animationPrice.event_source.stop()
+        self.canvasPrice.figure.clear()
+        self.layoutGraphPrice.removeWidget(self.canvasPrice)
+        self.canvasPrice.deleteLater()
+        self.canvasPrice = None
 
-        self.plota()
-        self.plotb()
+        self.figurePrice = pltPrice.figure()
+        self.canvasPrice = FigureCanvas(self.figurePrice)
+        self.layoutGraphPrice.addWidget(self.canvasPrice)
+        self.plotPrice()
+
+        if self.animationDelta != None:
+            self.animationDelta.event_source.stop()
+        self.canvasDelta.figure.clear()
+        self.layoutGraphDelta.removeWidget(self.canvasDelta)
+        self.canvasDelta.deleteLater()
+        self.canvasDelta = None
+
+        self.figureDelta = pltDelta.figure()
+        self.canvasDelta = FigureCanvas(self.figureDelta)
+        self.layoutGraphDelta.addWidget(self.canvasDelta)
+        self.plotDelta()
+
+
         print "BBB"
 
     def on_push_button_buy_clicked(self):
         print "AAAAA"
 
-    def plota(self):
+    def plotPrice(self):
         def update_line(num, data, line):
             line.set_data(data[..., :num])
             return line,
@@ -56,19 +90,19 @@ class Main(QtGui.QMainWindow):
         x = np.array([t, S])
 
         data = x
-        l, = plt.plot([], [])
-        plt.xlim(0, 100)
-        plt.ylim(0, 45)
-        plt.xlabel('time')
-        plt.title('price')
-        plt.grid()
+        l, = pltDelta.plot([], [])
+        pltPrice.xlim(0, 100)
+        pltPrice.ylim(0, 45)
+        pltPrice.xlabel('time')
+        pltPrice.title('price/unit')
+        pltPrice.grid()
 
-        self.line_ani_1 = animation.FuncAnimation(self.figure, update_line, 1000, fargs=(data, l),
-                                                  interval=20, blit=False, repeat=False)
-        self.canvas.draw()
-        self.canvas.show()
+        self.animationPrice = animationPrice.FuncAnimation(self.figurePrice, update_line, 1000, fargs=(data, l),
+                                                           interval=20, blit=False, repeat=False)
+        self.canvasPrice.draw()
+        self.canvasPrice.show()
 
-    def plotb(self):
+    def plotDelta(self):
         def update_line(num, data, line):
             line.set_data(data[..., :num])
             return line,
@@ -87,17 +121,18 @@ class Main(QtGui.QMainWindow):
         x = np.array([t, S])
 
         data = x
-        l, = plt.plot([], [])
-        plt.xlim(0, 100)
-        plt.ylim(0, 45)
-        plt.xlabel('time')
-        plt.title('price')
-        plt.grid()
+        l, = pltDelta.plot([], [])
+        pltDelta.xlim(0, 100)
+        pltDelta.ylim(0, 45)
+        pltDelta.xlabel('time')
+        pltDelta.title('delta')
+        pltDelta.grid()
 
-        self.line_ani_2 = animation.FuncAnimation(self.figure, update_line, 1000, fargs=(data, l),
-                                                  interval=20, blit=False, repeat=False)
-        self.canvas.draw()
-        self.canvas.show()
+        self.animationDelta = animationDelta.FuncAnimation(self.figureDelta, update_line, 1000, fargs=(data, l),
+                                                           interval=20, blit=False, repeat=False)
+
+        self.canvasDelta.draw()
+        self.canvasDelta.show()
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
