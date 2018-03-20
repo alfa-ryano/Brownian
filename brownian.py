@@ -62,7 +62,7 @@ class Window(QtGui.QMainWindow):
             self.canvas = FigureCanvas(self.figure)
             self.graph_layout.addWidget(self.canvas)
             
-     #   self.figure = pltDelta.figure()
+     #   self.figure = plot.figure()
         T = 100
         mu = 0.0
         sigma = 0.1
@@ -93,7 +93,7 @@ class Window(QtGui.QMainWindow):
         self.canvas.draw()
         self.canvas.show()  
       
-       # pltDelta.show()
+       # plot.show()
 #EXECUTION:        
 ###############################################################################
 ###############################################################################
