@@ -59,7 +59,41 @@ color: rgb(0, 0, 0);</string>
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QLabel" name="labelPortofolioValueAmount_2">
+          <property name="font">
+           <font>
+            <pointsize>14</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Unit Count</string>
+          </property>
+         </widget>
+        </item>
        </layout>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="edit_unit_count">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>14</pointsize>
+         </font>
+        </property>
+        <property name="mouseTracking">
+         <bool>false</bool>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(255, 255, 255);
+color: rgb(0, 0, 0);</string>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QLabel" name="labelPortofolioValueAmount_4">
@@ -484,6 +518,9 @@ color: rgb(0, 0, 0);</string>
             <widget class="QSlider" name="slider_asset">
              <property name="maximum">
               <number>100</number>
+             </property>
+             <property name="singleStep">
+              <number>1</number>
              </property>
              <property name="sliderPosition">
               <number>50</number>

@@ -16,16 +16,18 @@ class SimulationForm(QtGui.QMainWindow):
         self.timer = None
         self.function_animation_price = None
         self.function_animation_delta = None
+        self.function_animation_benchmark = None
         self.data_price = np.array([[], []])
         self.data_delta = np.array([[], []])
-        self.adjustmentValue = 0
+        self.data_benchmark = np.array([[], []])
 
         uic.loadUi('simulation.ui', self)
         self.buttonStart.clicked.connect(self.on_push_button_start_clicked)
-        self.slider_asset.valueChanged.connect(self.on_slider_asset_value_changed)
+        self.slider_asset.sliderReleased.connect(self.on_slider_asset_released)
 
         # for initialisation the values here are given
-        self.portfolio_value = 100.0
+        self.initial_portfolio_value = 100.0
+        self.portfolio_value = self.initial_portfolio_value
         self.portfolio_percentage = self.portfolio_value / self.portfolio_value * 100.0
         self.unit_price = 25.0
         self.asset_percentage = 50
@@ -38,6 +40,9 @@ class SimulationForm(QtGui.QMainWindow):
         self.update_value_displays()
         self.edit_time.setText(str(0))
 
+        self.benchmark_final_revenue_percentage = 10.0
+        self.benchmark_final_revenue_value = self.benchmark_final_revenue_percentage / 100.0 * self.portfolio_value
+
         self.figure_price_id = 1
         self.figure_price = plot.figure(self.figure_price_id)
         self.canvas_price = FigureCanvas(self.figure_price)
@@ -45,7 +50,7 @@ class SimulationForm(QtGui.QMainWindow):
         plot.xlim(0, 100)
         plot.ylim(0, 50)
         plot.xlabel('time')
-        plot.title('price')
+        plot.title('price per unit')
         plot.grid()
 
         self.figure_delta_id = 2
@@ -55,12 +60,11 @@ class SimulationForm(QtGui.QMainWindow):
         plot.xlim(0, 100)
         plot.ylim(0, 200)
         plot.xlabel('time')
-        plot.title('total assets')
+        plot.title('portfolio value')
         plot.grid()
 
-        print "constructor executed"
-
     def on_push_button_start_clicked(self):
+        self.buttonStart.setEnabled(False)
         if self.function_animation_price is not None:
             self.function_animation_price.event_source.stop()
         self.canvas_price.figure.clear()
@@ -70,20 +74,25 @@ class SimulationForm(QtGui.QMainWindow):
 
         if self.function_animation_delta is not None:
             self.function_animation_delta.event_source.stop()
+
+        if self.function_animation_benchmark is not None:
+            self.function_animation_benchmark.event_source.stop()
+
         self.canvas_delta.figure.clear()
         self.figure_delta = plot.figure(self.figure_delta_id)
         self.data_delta = np.array([[], []])
         self.plot_delta()
 
-        print "Button Start clicked"
+        self.figure_delta = plot.figure(self.figure_delta_id)
+        self.data_benchmark = np.array([[], []])
+        self.plot_benchmark()
 
-    def on_slider_asset_value_changed(self):
+    def on_slider_asset_released(self):
         self.calculate_values()
         self.update_value_displays()
-        print "Slider Asset value changed"
 
     def calculate_values(self):
-        self.asset_percentage = self.slider_asset.value()
+        self.asset_percentage = self.slider_asset.value() * 1.0
         self.asset_value = self.unit_count * self.unit_price
         self.portfolio_value = self.asset_value + self.cash_value
 
@@ -92,19 +101,27 @@ class SimulationForm(QtGui.QMainWindow):
 
         if to_be_unit_count < self.unit_count:
             delta_unit_count = self.unit_count - to_be_unit_count
+            if delta_unit_count > self.unit_count:
+                delta_unit_count = self.unit_count
             self.unit_count -= delta_unit_count
-            total_new_cash = delta_unit_count * self.unit_price
-            self.cash_value += total_new_cash
+            delta_cash_value = delta_unit_count * self.unit_price
+            self.cash_value += delta_cash_value
         elif to_be_unit_count > self.unit_count:
             delta_unit_count = to_be_unit_count - self.unit_count
-            self.unit_count +=delta_unit_count
-            total_new_cash = delta_unit_count * self.unit_price
-            self.cash_value -= total_new_cash
+            max_affordable_unit_to_buy = self.cash_value / self.unit_price
+            if delta_unit_count > max_affordable_unit_to_buy:
+                delta_unit_count = max_affordable_unit_to_buy
+            self.unit_count += delta_unit_count
+            delta_cash_value = delta_unit_count * self.unit_price
+            self.cash_value -= delta_cash_value
+            if self.cash_value < 0:
+                self.cash_value = 0
 
         self.cash_percentage = self.cash_value / self.portfolio_value * 100
 
     def update_value_displays(self):
         self.edit_price_unit.setText(str(self.unit_price))
+        self.edit_unit_count.setText(str(self.unit_count))
         self.edit_portfolio_value.setText(str(self.portfolio_value))
         self.edit_asset_value.setText(str(self.asset_value))
         self.edit_cash_value.setText(str(self.cash_value))
@@ -139,6 +156,9 @@ class SimulationForm(QtGui.QMainWindow):
         # update the delta graphic with the data_delta calculated in update_line_price function
         line.set_data(self.data_delta)
 
+    def update_line_benchmark(self, num, data, line):
+        line.set_data(data[..., :num])
+
     def plot_price(self):
         T = 100
         mu = 0.0
@@ -158,7 +178,7 @@ class SimulationForm(QtGui.QMainWindow):
         plot.xlim(0, 100)
         plot.ylim(0, 50)
         plot.xlabel('time')
-        plot.title('price')
+        plot.title('price per unit')
         plot.grid()
 
         self.function_animation_price = animation.FuncAnimation(self.figure_price, self.update_line_price,
@@ -170,11 +190,12 @@ class SimulationForm(QtGui.QMainWindow):
         self.canvas_price.show()
 
     def plot_delta(self):
+
         l, = plot.plot([], [])
         plot.xlim(0, 100)
         plot.ylim(0, 200)
         plot.xlabel('time')
-        plot.title('total assets')
+        plot.title('portfolio value')
         plot.grid()
 
         self.function_animation_delta = animation.FuncAnimation(self.figure_delta, self.update_line_delta,
@@ -185,9 +206,22 @@ class SimulationForm(QtGui.QMainWindow):
         self.canvas_delta.draw()
         self.canvas_delta.show()
 
-# if __name__ == '__main__':
-#     app = QtGui.QApplication(sys.argv)
-#     window = Main()
-#     # window.show()
-#     window.showMaximized()
-#     sys.exit(app.exec_())
+    def plot_benchmark(self):
+
+        # draw a linear line
+        T = 100
+        dt = 0.1
+        N = round(T / dt)
+        t = np.linspace(0, T, N)
+        y = (self.benchmark_final_revenue_value / 100.0 * np.array(t)) + 100.0
+        self.data_benchmark = np.array([t, y])
+        l, = plot.plot([], [])
+
+        self.function_animation_benchmark = animation.FuncAnimation(self.figure_delta, self.update_line_benchmark,
+                                                                self.NUMBER_OF_FRAMES,
+                                                                fargs=(self.data_benchmark, l),
+                                                                interval=self.TIME_INTERVAL,
+                                                                blit=False, repeat=False)
+        self.canvas_delta.draw()
+        self.canvas_delta.show()
+
