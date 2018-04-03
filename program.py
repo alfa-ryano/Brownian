@@ -1,3 +1,4 @@
+import wx
 import sys
 from PyQt4 import QtGui, uic
 from register import RegisterForm
