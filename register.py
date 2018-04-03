@@ -6,7 +6,7 @@ class RegisterForm(QtGui.QMainWindow):
     def __init__(self, main_program):
         super(RegisterForm, self).__init__()
         self.main_program = main_program
-        uic.loadUi('register.ui', self)
+        uic.loadUi('ui/register.ui', self)
         self.main_program.user_id = self.edit_id.text()
         self.button_next.clicked.connect(self.on_button_next_click)
 
