@@ -140,7 +140,11 @@ color: rgb(0, 0, 0);</string>
        </widget>
       </item>
       <item>
-       <widget class="QTextEdit" name="text_edit_instruction"/>
+       <widget class="QTextEdit" name="text_edit_instruction">
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QPushButton" name="button_start">

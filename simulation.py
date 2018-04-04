@@ -1,9 +1,11 @@
 from PyQt4 import QtGui, uic, QtCore
-from PyQt4.QtCore import QFile, QTextStream
+from PyQt4.QtCore import QFile, QTextStream, Qt
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plot
 import matplotlib.animation as animation
 import numpy as np
+import ConfigParser
+import os
 
 
 class InputAssetDialog(QtGui.QDialog):
@@ -20,6 +22,10 @@ class InputAssetDialog(QtGui.QDialog):
         self.text_edit_instruction.setHtml(input_stream.readAll())
         f.close()
 
+    def keyPressEvent(self, event):
+        if not event.key() == Qt.Key_Escape:
+            super(InputAssetDialog, self).keyPressEvent(event)
+
     def on_button_ok_clicked(self):
         self.accept()
 
@@ -27,11 +33,17 @@ class InputAssetDialog(QtGui.QDialog):
         value = self.spinbox_asset_value.value()
         return value
 
+
 class SimulationForm(QtGui.QMainWindow):
-    TIME_INTERVAL = 1  # in milliseconds
+    TIME_INTERVAL = 0.1  # in milliseconds
     NUMBER_OF_FRAMES = 1000
 
-    def __init__(self, main_program, title, instruction_file, dialog_file):
+    CONFIG = 'CONFIG'
+    INITIAL_PORTFOLIO_VALUE = "INITIAL_PORTFOLIO_VALUE"
+    INITIAL_UNIT_PRICE = "INITIAL_UNIT_PRICE"
+    INITIAL_BENCHMARK_ASSET_PERCENTAGE = "INITIAL_BENCHMARK_ASSET_PERCENTAGE"
+
+    def __init__(self, main_program, title, instruction_file, dialog_file, config_file):
         super(SimulationForm, self).__init__()
 
         # dialog
@@ -63,11 +75,15 @@ class SimulationForm(QtGui.QMainWindow):
         self.text_edit_instruction.setHtml(input_stream.readAll())
         file.close()
 
+        # load config
+        config = ConfigParser.ConfigParser()
+        config.read(config_file)
+
         # for initialisation the values here are given
-        self.initial_portfolio_value = 100.0
+        self.initial_portfolio_value = float(config.get(self.CONFIG, self.INITIAL_PORTFOLIO_VALUE))
         self.portfolio_value = self.initial_portfolio_value
         self.portfolio_percentage = self.portfolio_value / self.portfolio_value * 100.0
-        self.unit_price = 25.0
+        self.unit_price = float(config.get(self.CONFIG, self.INITIAL_UNIT_PRICE))
         self.asset_percentage = self.initial_asset_percentage
         self.unit_count = self.asset_percentage * self.portfolio_value / (100.0 * self.unit_price)
         self.asset_value = self.unit_price * self.unit_count
@@ -76,7 +92,7 @@ class SimulationForm(QtGui.QMainWindow):
 
         # set benchmark values
         self.benchmark_portfolio_value = self.initial_portfolio_value
-        self.benchmark_asset_percentage = 20.0
+        self.benchmark_asset_percentage = float(config.get(self.CONFIG, self.INITIAL_BENCHMARK_ASSET_PERCENTAGE))
         self.benchmark_unit_count = self.benchmark_asset_percentage * self.benchmark_portfolio_value / (
             100.0 * self.unit_price)
         self.benchmark_asset_value = self.unit_price * self.benchmark_unit_count
@@ -236,11 +252,11 @@ class SimulationForm(QtGui.QMainWindow):
     def update_line_price(self, num, data, line):
         # create running data for price graphic by filtering the data from index 0 to num.
         # the num is increased by 1 per execution (num is the sequence number of the frame about to be displayed)
-        running_data = data[..., :num]
+        running_data = data[..., :num + 1]
 
         # get the last values of x and y of the running data, transform them, and append them to the data for
         # the delta graphic so that delta graphic mirrors price graphic
-        if num > 0:
+        if num >= 0:
             last_t = running_data[0][-1]
             last_price = running_data[1][-1]
 
@@ -261,8 +277,10 @@ class SimulationForm(QtGui.QMainWindow):
         line.set_data(running_data)
         self.update_value_displays()
 
-        print num
         if num >= self.NUMBER_OF_FRAMES - 1:
+
+            self.save_data()
+
             self.simulation_started = False
             self.button_start.setEnabled(True)
             self.button_start.setText("Next")
@@ -331,3 +349,24 @@ class SimulationForm(QtGui.QMainWindow):
                                                                     blit=False, repeat=False)
         self.canvas_delta.draw()
         self.canvas_delta.show()
+
+    def save_data(self):
+        data = ["period,price,portfolio,b_portfolio"]
+
+        prices = self.data_price[1].tolist()
+        portfolio_values = self.data_delta[1].tolist()
+        benchmark_values = self.data_benchmark[1].tolist()
+
+        for t in range(0, len(portfolio_values)):
+            row = [str(t + 1), str(prices[t]), str(portfolio_values[t]), str(benchmark_values[t])]
+            row_string = ",".join(row)
+            data.append(row_string)
+
+        folder = "result"
+        filename = os.environ['COMPUTERNAME'].replace("-", "_") + "-" + str(self.main_program.user_id) + "-" + str(
+            self.windowTitle()) + ".csv"
+        filename = filename.replace(" ", "_").lower()
+        path = folder + os.sep + filename
+        f = open(path, 'w')
+        f.write("\n".join(data))
+        f.close()
