@@ -35,8 +35,9 @@ class InputAssetDialog(QtGui.QDialog):
 
 
 class SimulationForm(QtGui.QMainWindow):
-    TIME_INTERVAL = 0.1  # in milliseconds
-    NUMBER_OF_FRAMES = 1000
+    PERIOD = 100.0  # unit in seconds
+    NUMBER_OF_FRAMES = 1000  # how many frames should appear during the PERIOD
+    TIME_INTERVAL = PERIOD / float(NUMBER_OF_FRAMES)
 
     CONFIG = 'CONFIG'
     INITIAL_PORTFOLIO_VALUE = "INITIAL_PORTFOLIO_VALUE"
@@ -271,7 +272,7 @@ class SimulationForm(QtGui.QMainWindow):
             self.unit_price = last_price
             self.calculate_values()
             self.update_value_displays()
-            self.edit_time.setText(str(num))
+            self.edit_time.setText(str(int(num * self.TIME_INTERVAL)))
             self.data_delta = np.insert(self.data_delta,
                                         np.shape(self.data_delta)[1],
                                         [last_t, self.portfolio_value],
@@ -316,7 +317,8 @@ class SimulationForm(QtGui.QMainWindow):
         mu = 0.0
         sigma = 0.1
         S0 = self.unit_price  # 20
-        dt = 0.1
+        dt = self.TIME_INTERVAL
+        # dt = 0.1
         N = round(T / dt)
         t = np.linspace(0, T, N)
         W = np.random.standard_normal(size=N)
@@ -369,7 +371,7 @@ class SimulationForm(QtGui.QMainWindow):
         self.canvas_delta.show()
 
     def save_data(self):
-        data = ["period,price,portfolio,unit,asset_v,asset_p,cash_v,cash_p,"
+        data = ["t,price,portfolio,unit,asset_v,asset_p,cash_v,cash_p,"
                 "b_portfolio,b_unit,b_asset_v,b_asset_p,b_cash_v,b_cash_p"]
 
         prices = self.data_price[1].tolist()
