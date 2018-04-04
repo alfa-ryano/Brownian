@@ -62,6 +62,16 @@ class SimulationForm(QtGui.QMainWindow):
         self.data_price = np.array([[], []])
         self.data_delta = np.array([[], []])
         self.data_benchmark = np.array([[], []])
+        self.data_unit_count = []
+        self.data_asset_value = []
+        self.data_asset_percentage = []
+        self.data_cash_value = []
+        self.data_cash_percentage = []
+        self.data_benchmark_unit_count = []
+        self.data_benchmark_asset_value = []
+        self.data_benchmark_asset_percentage = []
+        self.data_benchmark_cash_value = []
+        self.data_benchmark_cash_percentage = []
 
         uic.loadUi('ui/simulation.ui', self)
         self.setWindowTitle(title)
@@ -160,7 +170,6 @@ class SimulationForm(QtGui.QMainWindow):
 
     def slider_pressed(self):
         self.asset_percentage = self.slider_asset.value() / 100.0
-        print "slider pressed"
 
     def on_mouse_released(self, mouse_event):
         left_margin = 6
@@ -175,7 +184,6 @@ class SimulationForm(QtGui.QMainWindow):
         self.asset_percentage = self.slider_asset.value() / 100.0
         self.calculate_values()
         self.update_value_displays()
-        print "mouse released"
 
     def calculate_actual_values(self):
         # self.asset_percentage = self.slider_asset.value() / 100.0
@@ -273,12 +281,22 @@ class SimulationForm(QtGui.QMainWindow):
                                             [last_t, self.benchmark_portfolio_value],
                                             axis=1)  # axis: '1' for inserting on matrix column, '0' for row
 
+        self.data_unit_count.append(self.unit_count)
+        self.data_asset_value.append(self.asset_value)
+        self.data_asset_percentage.append(self.asset_percentage)
+        self.data_cash_value.append(self.cash_value)
+        self.data_cash_percentage.append(self.cash_percentage)
+        self.data_benchmark_unit_count.append(self.benchmark_unit_count)
+        self.data_benchmark_asset_value.append(self.benchmark_asset_value)
+        self.data_benchmark_asset_percentage.append(self.benchmark_asset_percentage)
+        self.data_benchmark_cash_value.append(self.benchmark_cash_value)
+        self.data_benchmark_cash_percentage.append(self.benchmark_cash_percentage)
+
         # update the price graphic with the running data
         line.set_data(running_data)
         self.update_value_displays()
 
         if num >= self.NUMBER_OF_FRAMES - 1:
-
             self.save_data()
 
             self.simulation_started = False
@@ -351,20 +369,35 @@ class SimulationForm(QtGui.QMainWindow):
         self.canvas_delta.show()
 
     def save_data(self):
-        data = ["period,price,portfolio,b_portfolio"]
+        data = ["period,price,portfolio,unit,asset_v,asset_p,cash_v,cash_p,"
+                "b_portfolio,b_unit,b_asset_v,b_asset_p,b_cash_v,b_cash_p"]
 
         prices = self.data_price[1].tolist()
         portfolio_values = self.data_delta[1].tolist()
-        benchmark_values = self.data_benchmark[1].tolist()
+        benchmark_portfolio_values = self.data_benchmark[1].tolist()
 
         for t in range(0, len(portfolio_values)):
-            row = [str(t + 1), str(prices[t]), str(portfolio_values[t]), str(benchmark_values[t])]
+            row = [str(t + 1), str(prices[t]),
+                   str(portfolio_values[t]),
+                   str(self.data_unit_count[t]),
+                   str(self.data_asset_value[t]),
+                   str(self.data_asset_percentage[t]),
+                   str(self.data_cash_value[t]),
+                   str(self.data_cash_percentage[t]),
+                   str(benchmark_portfolio_values[t]),
+                   str(self.data_benchmark_unit_count[t]),
+                   str(self.data_benchmark_asset_value[t]),
+                   str(self.data_benchmark_asset_percentage[t]),
+                   str(self.data_benchmark_cash_value[t]),
+                   str(self.data_benchmark_cash_percentage[t])
+                   ]
+
             row_string = ",".join(row)
             data.append(row_string)
 
         folder = "result"
-        filename = os.environ['COMPUTERNAME'].replace("-", "_") + "-" + str(self.main_program.user_id) + "-" + str(
-            self.windowTitle()) + ".csv"
+        filename = str(self.main_program.user_id) + "-" + str(
+            self.windowTitle()) + "-" + os.environ['COMPUTERNAME'].replace("-", "_") + ".csv"
         filename = filename.replace(" ", "_").lower()
         path = folder + os.sep + filename
         f = open(path, 'w')

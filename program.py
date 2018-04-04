@@ -16,7 +16,7 @@ class MainProgram:
         self.user_id = None
 
         self.form_confs = []
-        # self.form_confs.append([RegisterForm.__name__, "", "", ""])
+        self.form_confs.append([RegisterForm.__name__, "", "", ""])
         self.form_confs.append(
             [SimulationForm.__name__, "Simulation 01", "instruction/simulation_01.html", "instruction/dialog_01.html",
              "configuration/simulation_01.ini"])
