@@ -4,13 +4,14 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plot
 import matplotlib.animation as animation
 import numpy as np
-import ConfigParser
+import random
 import os
 
 
 class InputAssetDialog(QtGui.QDialog):
     def __init__(self, main_form, dialog_file):
         super(InputAssetDialog, self).__init__()
+
         uic.loadUi('ui/dialog.ui', self)
         self.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
         self.main_form = main_form
@@ -35,17 +36,18 @@ class InputAssetDialog(QtGui.QDialog):
 
 
 class SimulationForm(QtGui.QMainWindow):
-    PERIOD = 100.0  # unit in seconds
-    NUMBER_OF_FRAMES = 1000  # how many frames should appear during the PERIOD
-    TIME_INTERVAL = PERIOD / float(NUMBER_OF_FRAMES)
+    NUMBER_OF_FRAMES = 1000  # how many frames should appear during the period
 
-    CONFIG = 'CONFIG'
-    INITIAL_PORTFOLIO_VALUE = "INITIAL_PORTFOLIO_VALUE"
-    INITIAL_UNIT_PRICE = "INITIAL_UNIT_PRICE"
-    INITIAL_BENCHMARK_ASSET_PERCENTAGE = "INITIAL_BENCHMARK_ASSET_PERCENTAGE"
-
-    def __init__(self, main_program, title, instruction_file, dialog_file, config_file):
+    def __init__(self, main_program, title, instruction_file, dialog_file, param_portfolio,
+                 param_period, param_fix_comp, param_add_comp, param_benchmark_asset, param_interest):
         super(SimulationForm, self).__init__()
+
+        self.frame_n = 0
+        self.fix_compensation = param_fix_comp
+        self.add_compensation = param_add_comp
+        self.bank_interest = param_interest
+        self.period = param_period
+        self.interval_time = self.period / float(self.NUMBER_OF_FRAMES)
 
         # dialog
         self.input_asset_dialog = InputAssetDialog(self, dialog_file)
@@ -60,19 +62,37 @@ class SimulationForm(QtGui.QMainWindow):
         self.function_animation_price = None
         self.function_animation_delta = None
         self.function_animation_benchmark = None
+
         self.data_price = np.array([[], []])
         self.data_delta = np.array([[], []])
         self.data_benchmark = np.array([[], []])
+
         self.data_unit_count = []
         self.data_asset_value = []
         self.data_asset_percentage = []
         self.data_cash_value = []
         self.data_cash_percentage = []
+
         self.data_benchmark_unit_count = []
         self.data_benchmark_asset_value = []
         self.data_benchmark_asset_percentage = []
         self.data_benchmark_cash_value = []
         self.data_benchmark_cash_percentage = []
+
+        self.user_data_frame = []
+        self.user_data_price = []
+        self.user_data_portfolio = []
+        self.user_data_benchmark = []
+        self.user_data_unit_count = []
+        self.user_data_asset_value = []
+        self.user_data_asset_percentage = []
+        self.user_data_cash_value = []
+        self.user_data_cash_percentage = []
+        self.user_data_benchmark_unit_count = []
+        self.user_data_benchmark_asset_value = []
+        self.user_data_benchmark_asset_percentage = []
+        self.user_data_benchmark_cash_value = []
+        self.user_data_benchmark_cash_percentage = []
 
         uic.loadUi('ui/simulation.ui', self)
         self.setWindowTitle(title)
@@ -80,21 +100,18 @@ class SimulationForm(QtGui.QMainWindow):
         self.slider_asset.sliderPressed.connect(self.slider_pressed)
         self.slider_asset.mouseReleaseEvent = self.on_mouse_released
 
-        file = QFile(instruction_file)
-        file.open(QFile.ReadOnly | QFile.Text)
-        input_stream = QTextStream(file)
+        f = QFile(instruction_file)
+        f.open(QFile.ReadOnly | QFile.Text)
+        input_stream = QTextStream(f)
         self.text_edit_instruction.setHtml(input_stream.readAll())
-        file.close()
-
-        # load config
-        config = ConfigParser.ConfigParser()
-        config.read(config_file)
+        f.close()
 
         # for initialisation the values here are given
-        self.initial_portfolio_value = float(config.get(self.CONFIG, self.INITIAL_PORTFOLIO_VALUE))
+        self.initial_portfolio_value = float(param_portfolio)
         self.portfolio_value = self.initial_portfolio_value
         self.portfolio_percentage = self.portfolio_value / self.portfolio_value * 100.0
-        self.unit_price = float(config.get(self.CONFIG, self.INITIAL_UNIT_PRICE))
+        self.unit_price = float(random.randint(int(self.initial_portfolio_value * 5.0 / 100.0),
+                                               int(self.initial_portfolio_value * 25.0 / 100.0)))
         self.asset_percentage = self.initial_asset_percentage
         self.unit_count = self.asset_percentage * self.portfolio_value / (100.0 * self.unit_price)
         self.asset_value = self.unit_price * self.unit_count
@@ -103,7 +120,7 @@ class SimulationForm(QtGui.QMainWindow):
 
         # set benchmark values
         self.benchmark_portfolio_value = self.initial_portfolio_value
-        self.benchmark_asset_percentage = float(config.get(self.CONFIG, self.INITIAL_BENCHMARK_ASSET_PERCENTAGE))
+        self.benchmark_asset_percentage = param_benchmark_asset
         self.benchmark_unit_count = self.benchmark_asset_percentage * self.benchmark_portfolio_value / (
             100.0 * self.unit_price)
         self.benchmark_asset_value = self.unit_price * self.benchmark_unit_count
@@ -116,14 +133,26 @@ class SimulationForm(QtGui.QMainWindow):
         self.update_value_displays()
         self.edit_time.setText(str(0))
 
+        self.record_user_action()
+
         # initialise graphics
+        self.price_xlower = 0
+        self.price_ylower = 0
+        self.price_xupper = self.period
+        self.price_yupper = self.unit_price * 2
+
+        self.portfolio_xlower = 0
+        self.delta_ylower = 0
+        self.portfolio_xupper = self.period
+        self.delta_yupper = self.portfolio_value * 2
+
         self.figure_price_id = 1
         self.figure_price = plot.figure(self.figure_price_id)
         self.canvas_price = FigureCanvas(self.figure_price)
         self.layoutGraphPrice.addWidget(self.canvas_price)
         self.canvas_price.figure.clear()
-        plot.xlim(0, 100)
-        plot.ylim(0, 50)
+        plot.xlim(self.price_xlower, self.price_xupper)
+        plot.ylim(self.price_ylower, self.price_yupper)
         plot.xlabel('period')
         plot.title('price per unit')
         plot.grid()
@@ -133,8 +162,8 @@ class SimulationForm(QtGui.QMainWindow):
         self.canvas_delta = FigureCanvas(self.figure_delta)
         self.layoutGraphDelta.addWidget(self.canvas_delta)
         self.canvas_delta.figure.clear()
-        plot.xlim(0, 100)
-        plot.ylim(0, 200)
+        plot.xlim(self.portfolio_xlower, self.portfolio_xupper)
+        plot.ylim(self.delta_ylower, self.delta_yupper)
         plot.xlabel('period')
         plot.title('portfolio value')
         plot.grid()
@@ -145,6 +174,7 @@ class SimulationForm(QtGui.QMainWindow):
             return
 
         self.button_start.setEnabled(False)
+
         if self.function_animation_price is not None:
             self.function_animation_price.event_source.stop()
         self.canvas_price.figure.clear()
@@ -169,6 +199,8 @@ class SimulationForm(QtGui.QMainWindow):
 
         self.simulation_started = True
 
+        self.record_user_action()
+
     def slider_pressed(self):
         self.asset_percentage = self.slider_asset.value() / 100.0
 
@@ -184,6 +216,7 @@ class SimulationForm(QtGui.QMainWindow):
 
         self.asset_percentage = self.slider_asset.value() / 100.0
         self.calculate_values()
+        self.record_user_action()
         self.update_value_displays()
 
     def calculate_actual_values(self):
@@ -262,6 +295,7 @@ class SimulationForm(QtGui.QMainWindow):
         # create running data for price graphic by filtering the data from index 0 to num.
         # the num is increased by 1 per execution (num is the sequence number of the frame about to be displayed)
         running_data = data[..., :num + 1]
+        self.frame_n = num
 
         # get the last values of x and y of the running data, transform them, and append them to the data for
         # the delta graphic so that delta graphic mirrors price graphic
@@ -272,7 +306,7 @@ class SimulationForm(QtGui.QMainWindow):
             self.unit_price = last_price
             self.calculate_values()
             self.update_value_displays()
-            self.edit_time.setText(str(int(num * self.TIME_INTERVAL)))
+            self.edit_time.setText(str(int(num * self.interval_time)))
             self.data_delta = np.insert(self.data_delta,
                                         np.shape(self.data_delta)[1],
                                         [last_t, self.portfolio_value],
@@ -297,8 +331,32 @@ class SimulationForm(QtGui.QMainWindow):
         line.set_data(running_data)
         self.update_value_displays()
 
+        if self.unit_price > self.price_yupper * 90.0 / 100.0 or self.unit_price > self.price_yupper:
+            self.price_yupper += (self.price_yupper + abs(self.delta_ylower)) * 10 / 100.0
+            self.refresh_price_plot()
+        if self.unit_price < self.price_ylower * 10.0 / 100.0 or self.unit_price < self.price_ylower:
+            self.price_ylower -= (self.price_yupper + abs(self.delta_ylower)) * 10 / 100.0
+            self.refresh_price_plot()
+
+        if self.portfolio_value > self.delta_yupper * 90.0 / 100.0 or self.portfolio_value > self.delta_yupper:
+            self.delta_yupper += (self.delta_yupper + abs(self.delta_ylower)) * 10 / 100.0
+            self.refresh_delta_plot()
+        if self.portfolio_value < self.delta_ylower * 10.0 / 100.0 or self.portfolio_value < self.delta_ylower:
+            self.delta_ylower -= (self.delta_yupper + abs(self.delta_ylower)) * 10 / 100.0
+            self.refresh_delta_plot()
+
+        if self.benchmark_portfolio_value > self.delta_yupper * 90.0 / 100.0 or \
+                        self.benchmark_portfolio_value > self.delta_yupper:
+            self.delta_yupper += (self.delta_yupper + abs(self.delta_ylower)) * 10 / 100.0
+            self.refresh_delta_plot()
+        if self.benchmark_portfolio_value < self.delta_ylower * 10.0 / 100.0 or \
+                        self.benchmark_portfolio_value < self.delta_ylower:
+            self.delta_ylower -= (self.delta_yupper + abs(self.delta_ylower)) * 10 / 100.0
+            self.refresh_delta_plot()
+
         if num >= self.NUMBER_OF_FRAMES - 1:
             self.save_data()
+            self.save_user_actions()
 
             self.simulation_started = False
             self.button_start.setEnabled(True)
@@ -313,11 +371,11 @@ class SimulationForm(QtGui.QMainWindow):
         line.set_data(self.data_benchmark)
 
     def plot_price(self):
-        T = 100
+        T = self.period
         mu = 0.0
         sigma = 0.1
         S0 = self.unit_price  # 20
-        dt = self.TIME_INTERVAL
+        dt = self.interval_time
         # dt = 0.1
         N = round(T / dt)
         t = np.linspace(0, T, N)
@@ -329,16 +387,12 @@ class SimulationForm(QtGui.QMainWindow):
 
         self.data_price = x
         l, = plot.plot([], [])
-        plot.xlim(0, 100)
-        plot.ylim(0, 50)
-        plot.xlabel('period')
-        plot.title('price per unit')
-        plot.grid()
+        self.refresh_price_plot()
 
         self.function_animation_price = animation.FuncAnimation(self.figure_price, self.update_line_price,
                                                                 self.NUMBER_OF_FRAMES,
                                                                 fargs=(self.data_price, l),
-                                                                interval=self.TIME_INTERVAL,
+                                                                interval=self.interval_time,
                                                                 blit=False, repeat=False)
         self.canvas_price.draw()
         self.canvas_price.show()
@@ -346,16 +400,12 @@ class SimulationForm(QtGui.QMainWindow):
     def plot_delta(self):
 
         l, = plot.plot([], [])
-        plot.xlim(0, 100)
-        plot.ylim(0, 200)
-        plot.xlabel('period')
-        plot.title('portfolio value')
-        plot.grid()
+        self.refresh_delta_plot()
 
         self.function_animation_delta = animation.FuncAnimation(self.figure_delta, self.update_line_delta,
                                                                 self.NUMBER_OF_FRAMES,
                                                                 fargs=(self.data_delta, l),
-                                                                interval=self.TIME_INTERVAL,
+                                                                interval=self.interval_time,
                                                                 blit=False, repeat=False)
         self.canvas_delta.draw()
         self.canvas_delta.show()
@@ -365,13 +415,46 @@ class SimulationForm(QtGui.QMainWindow):
         self.function_animation_benchmark = animation.FuncAnimation(self.figure_delta, self.update_line_benchmark,
                                                                     self.NUMBER_OF_FRAMES,
                                                                     fargs=(self.data_benchmark, l),
-                                                                    interval=self.TIME_INTERVAL,
+                                                                    interval=self.interval_time,
                                                                     blit=False, repeat=False)
         self.canvas_delta.draw()
         self.canvas_delta.show()
 
+    def save_user_actions(self):
+        data = ["frame,price,portfolio,unit,asset_v,asset_p,cash_v,cash_p,"
+                "b_portfolio,b_unit,b_asset_v,b_asset_p,b_cash_v,b_cash_p"]
+
+        for t in range(0, len(self.user_data_frame)):
+            row = [str(self.user_data_frame[t]),
+                   str(self.user_data_price[t]),
+                   str(self.user_data_portfolio[t]),
+                   str(self.user_data_unit_count[t]),
+                   str(self.user_data_asset_value[t]),
+                   str(self.user_data_asset_percentage[t]),
+                   str(self.user_data_cash_value[t]),
+                   str(self.user_data_cash_percentage[t]),
+                   str(self.user_data_benchmark[t]),
+                   str(self.user_data_benchmark_unit_count[t]),
+                   str(self.user_data_benchmark_asset_value[t]),
+                   str(self.user_data_benchmark_asset_percentage[t]),
+                   str(self.user_data_benchmark_cash_value[t]),
+                   str(self.user_data_benchmark_cash_percentage[t])
+                   ]
+
+            row_string = ",".join(row)
+            data.append(row_string)
+
+        folder = "result"
+        filename = str(self.main_program.user_id) + "-" + str(
+            self.windowTitle()) + "-user-" + os.environ['COMPUTERNAME'].replace("-", "_") + ".csv"
+        filename = filename.replace(" ", "_").lower()
+        path = folder + os.sep + filename
+        f = open(path, 'w')
+        f.write("\n".join(data))
+        f.close()
+
     def save_data(self):
-        data = ["t,price,portfolio,unit,asset_v,asset_p,cash_v,cash_p,"
+        data = ["frame,price,portfolio,unit,asset_v,asset_p,cash_v,cash_p,"
                 "b_portfolio,b_unit,b_asset_v,b_asset_p,b_cash_v,b_cash_p"]
 
         prices = self.data_price[1].tolist()
@@ -379,7 +462,8 @@ class SimulationForm(QtGui.QMainWindow):
         benchmark_portfolio_values = self.data_benchmark[1].tolist()
 
         for t in range(0, len(portfolio_values)):
-            row = [str(t + 1), str(prices[t]),
+            row = [str(t),
+                   str(prices[t]),
                    str(portfolio_values[t]),
                    str(self.data_unit_count[t]),
                    str(self.data_asset_value[t]),
@@ -405,3 +489,36 @@ class SimulationForm(QtGui.QMainWindow):
         f = open(path, 'w')
         f.write("\n".join(data))
         f.close()
+
+    def refresh_price_plot(self):
+        self.figure_price = plot.figure(self.figure_price_id)
+        plot.xlim(self.price_xlower, self.price_xupper)
+        plot.ylim(self.price_ylower, self.price_yupper)
+        plot.xlabel('period')
+        plot.title('price per unit')
+        plot.grid()
+
+    def refresh_delta_plot(self):
+        self.figure_delta = plot.figure(self.figure_delta_id)
+        plot.xlim(self.portfolio_xlower, self.portfolio_xupper)
+        plot.ylim(self.delta_ylower, self.delta_yupper)
+        plot.xlabel('period')
+        plot.title('portfolio value')
+        plot.grid()
+
+    def record_user_action(self):
+        self.user_data_frame.append(self.frame_n)
+        self.user_data_price.append(self.unit_price)
+        self.user_data_portfolio.append(self.portfolio_value)
+        self.user_data_unit_count.append(self.unit_count)
+        self.user_data_asset_value.append(self.asset_value)
+        self.user_data_asset_percentage.append(self.asset_percentage)
+        self.user_data_cash_value.append(self.cash_value)
+        self.user_data_cash_percentage.append(self.cash_percentage)
+        self.user_data_benchmark.append(self.benchmark_portfolio_value)
+        self.user_data_benchmark_unit_count.append(self.benchmark_unit_count)
+        self.user_data_benchmark_asset_value.append(self.benchmark_asset_value)
+        self.user_data_benchmark_asset_percentage.append(self.benchmark_asset_value)
+        self.user_data_benchmark_cash_value.append(self.benchmark_cash_value)
+        self.user_data_benchmark_cash_percentage.append(self.benchmark_cash_percentage)
+

@@ -1,0 +1,4 @@
+name, portfolio, period, fix_comp, add_comp, b_asset, interest, dialog_file, simulation_file
+Simulation 01, 100, 100, 0.5, 10, 10, 0, dialog_01.html, simulation_01.html
+Simulation 02, 150, 110, 0.6, 11, 20, 0, dialog_02.html, simulation_02.html
+Simulation 03, 200, 120, 0.7, 12, 25, 0, dialog_03.html, simulation_03.html

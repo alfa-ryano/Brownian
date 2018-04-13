@@ -2,30 +2,48 @@ import sys
 from PyQt4 import QtGui, QtCore
 from register import RegisterForm
 from simulation import SimulationForm
+import csv
+
+
 # import ConfigParser
 
 class MainProgram:
     INDEX_FORM_TYPE = 0
     INDEX_FORM_TITLE = 1
-    INDEX_FORM_INSTRUCTION = 2
-    INDEX_FORM_DIALOG = 3
-    INDEX_CONF_FILE = 4
+    INDEX_FORM_DIALOG = 2
+    INDEX_FORM_INSTRUCTION = 3
+    INDEX_PORTFOLIO = 4
+    INDEX_PERIOD = 5
+    INDEX_FIX_COMPENSATION = 6
+    INDEX_ADD_COMPENSATION = 7
+    INDEX_BENCHMARK_ASSET = 8
+    INDEX_BANK_INTEREST = 9
+
 
     def __init__(self):
         self.app = None
         self.user_id = None
 
         self.form_confs = []
-        self.form_confs.append([RegisterForm.__name__, "", "", ""])
-        self.form_confs.append(
-            [SimulationForm.__name__, "Simulation 01", "instruction/simulation_01.html", "instruction/dialog_01.html",
-             "configuration/simulation_01.ini"])
-        self.form_confs.append(
-            [SimulationForm.__name__, "Simulation 02", "instruction/simulation_02.html", "instruction/dialog_02.html",
-             "configuration/simulation_02.ini"])
-        self.form_confs.append(
-            [SimulationForm.__name__, "Simulation 03", "instruction/simulation_03.html", "instruction/dialog_03.html",
-             "configuration/simulation_03.ini"])
+        self.form_confs.append([RegisterForm.__name__, "1", "2", "3", "4", "5", "6", "7", "8", "9"])
+
+        with open("configuration/simulation_configuration.csv", "r") as f:
+            reader = csv.reader(f, delimiter=",")
+            next(reader, None)  # skip header
+            for i, line in enumerate(reader):
+                confs = [None] * 10
+                confs[self.INDEX_FORM_TYPE] = SimulationForm.__name__
+                confs[self.INDEX_FORM_TITLE] = str(line[0]).strip()
+                confs[self.INDEX_PORTFOLIO] = float(line[1])
+                confs[self.INDEX_PERIOD]= float(line[2])
+                confs[self.INDEX_FIX_COMPENSATION] = float(line[3])
+                confs[self.INDEX_ADD_COMPENSATION] = float(line[4])
+                confs[self.INDEX_BENCHMARK_ASSET] = float(line[5])
+                confs[self.INDEX_BANK_INTEREST] = float(line[6])
+                confs[self.INDEX_FORM_DIALOG] = "instruction/" + str(line[7]).strip()
+                confs[self.INDEX_FORM_INSTRUCTION] = "instruction/" + str(line[8]).strip()
+                self.form_confs.append(confs)
+
         self.current_form_index = 0
         self.current_form = None
 
@@ -36,7 +54,14 @@ class MainProgram:
         elif form_conf[self.INDEX_FORM_TYPE] == SimulationForm.__name__:
             self.current_form = SimulationForm(self, form_conf[self.INDEX_FORM_TITLE],
                                                form_conf[self.INDEX_FORM_INSTRUCTION],
-                                               form_conf[self.INDEX_FORM_DIALOG], form_conf[self.INDEX_CONF_FILE])
+                                               form_conf[self.INDEX_FORM_DIALOG],
+                                               form_conf[self.INDEX_PORTFOLIO],
+                                               form_conf[self.INDEX_PERIOD],
+                                               form_conf[self.INDEX_FIX_COMPENSATION],
+                                               form_conf[self.INDEX_ADD_COMPENSATION],
+                                               form_conf[self.INDEX_BENCHMARK_ASSET],
+                                               form_conf[self.INDEX_BANK_INTEREST]
+                                               )
 
         self.current_form.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
         self.current_form.showMaximized()
@@ -55,7 +80,14 @@ class MainProgram:
         elif form_conf[self.INDEX_FORM_TYPE] == SimulationForm.__name__:
             self.current_form = SimulationForm(self, form_conf[self.INDEX_FORM_TITLE],
                                                form_conf[self.INDEX_FORM_INSTRUCTION],
-                                               form_conf[self.INDEX_FORM_DIALOG], form_conf[self.INDEX_CONF_FILE])
+                                               form_conf[self.INDEX_FORM_DIALOG],
+                                               form_conf[self.INDEX_PORTFOLIO],
+                                               form_conf[self.INDEX_PERIOD],
+                                               form_conf[self.INDEX_FIX_COMPENSATION],
+                                               form_conf[self.INDEX_ADD_COMPENSATION],
+                                               form_conf[self.INDEX_BENCHMARK_ASSET],
+                                               form_conf[self.INDEX_BANK_INTEREST]
+                                               )
 
         self.current_form.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
         self.current_form.showMaximized()
