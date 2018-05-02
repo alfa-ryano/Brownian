@@ -6,6 +6,54 @@ import matplotlib.animation as animation
 import numpy as np
 import random
 import os
+from math import ceil
+
+
+class ResultDialog(QtGui.QDialog):
+    def __init__(self, main_form):
+        super(ResultDialog, self).__init__()
+
+        uic.loadUi('ui/result.ui', self)
+        self.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
+        self.main_form = main_form
+        self.button_ok.clicked.connect(self.on_button_ok_clicked)
+
+    def keyPressEvent(self, event):
+        if not event.key() == Qt.Key_Escape:
+            super(ResultDialog, self).keyPressEvent(event)
+
+    def on_button_ok_clicked(self):
+        self.accept()
+
+    def set_result(self, portfolio_value, benchmark_value):
+        portfolio_value = round(portfolio_value, 10)
+        benchmark_value = round(benchmark_value, 10)
+        self.edit_portfolio_value.setText(str(portfolio_value))
+        self.edit_benchmark_value.setText(str(benchmark_value))
+        self.edit_gain_value.setText(str(portfolio_value - benchmark_value))
+
+
+class InstructionDialog(QtGui.QDialog):
+    def __init__(self, main_form, dialog_file):
+        super(InstructionDialog, self).__init__()
+
+        uic.loadUi('ui/instruction.ui', self)
+        self.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
+        self.main_form = main_form
+        self.button_ok.clicked.connect(self.on_button_ok_clicked)
+
+        f = QFile(dialog_file)
+        f.open(QFile.ReadOnly | QFile.Text)
+        input_stream = QTextStream(f)
+        self.text_edit_instruction.setHtml(input_stream.readAll())
+        f.close()
+
+    def keyPressEvent(self, event):
+        if not event.key() == Qt.Key_Escape:
+            super(InstructionDialog, self).keyPressEvent(event)
+
+    def on_button_ok_clicked(self):
+        self.accept()
 
 
 class InputAssetDialog(QtGui.QDialog):
@@ -36,24 +84,43 @@ class InputAssetDialog(QtGui.QDialog):
 
 
 class SimulationForm(QtGui.QMainWindow):
-    NUMBER_OF_FRAMES = 1000  # how many frames should appear during the period
+    INTERVAL_TIME = 0.1
+    X_AXIS_WIDTH = 60
 
-    def __init__(self, main_program, title, instruction_file, dialog_file, param_portfolio,
-                 param_period, param_fix_comp, param_add_comp, param_benchmark_asset, param_interest):
+    def __init__(self, main_program, experiment_name, param_simulation_instruction_file, param_dialog_instruction_file,
+                 param_portfolio, param_period, param_fix_comp, param_add_comp, param_benchmark_asset, param_interest,
+                 param_mu, param_sigma, param_main_instruction_file):
         super(SimulationForm, self).__init__()
 
-        self.frame_n = 0
+        self.experiment_name = experiment_name
+        self.mu = param_mu
+        self.sigma = param_sigma
+        self.current_frame = 0
+        self.current_time = 0
         self.fix_compensation = param_fix_comp
         self.add_compensation = param_add_comp
         self.bank_interest = param_interest
         self.period = param_period
-        self.interval_time = self.period / float(self.NUMBER_OF_FRAMES)
+        self.number_of_frames = int(self.period / self.INTERVAL_TIME) + 1
 
-        # dialog
-        self.input_asset_dialog = InputAssetDialog(self, dialog_file)
+        # main instruction
+        self.instruction_dialog = InstructionDialog(self, param_main_instruction_file)
+        self.instruction_dialog.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
+        self.instruction_dialog.setWindowState(QtCore.Qt.WindowMaximized)
+        self.instruction_dialog.exec_()
+        self.instruction_dialog.close()
+
+        # set asset dialog
+        self.input_asset_dialog = InputAssetDialog(self, param_dialog_instruction_file)
+        self.input_asset_dialog.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
+        self.input_asset_dialog.setWindowState(QtCore.Qt.WindowMaximized)
         self.input_asset_dialog.exec_()
         self.initial_asset_percentage = self.input_asset_dialog.get_initial_asset_percentage()
         self.input_asset_dialog.close()
+
+        # result dialog
+        self.result_dialog = ResultDialog(self)
+        self.result_dialog.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
 
         # initialise
         self.main_program = main_program
@@ -95,12 +162,12 @@ class SimulationForm(QtGui.QMainWindow):
         self.user_data_benchmark_cash_percentage = []
 
         uic.loadUi('ui/simulation.ui', self)
-        self.setWindowTitle(title)
+        self.setWindowTitle(experiment_name)
         self.button_start.clicked.connect(self.on_push_button_start_clicked)
         self.slider_asset.sliderPressed.connect(self.slider_pressed)
         self.slider_asset.mouseReleaseEvent = self.on_mouse_released
 
-        f = QFile(instruction_file)
+        f = QFile(param_simulation_instruction_file)
         f.open(QFile.ReadOnly | QFile.Text)
         input_stream = QTextStream(f)
         self.text_edit_instruction.setHtml(input_stream.readAll())
@@ -138,13 +205,15 @@ class SimulationForm(QtGui.QMainWindow):
         # initialise graphics
         self.price_xlower = 0
         self.price_ylower = 0
-        self.price_xupper = self.period
+        self.price_xupper = self.X_AXIS_WIDTH
         self.price_yupper = self.unit_price * 2
+        self.price_x_moving_threshold = ceil((self.price_xlower + self.price_xupper) * 0.8)
 
         self.portfolio_xlower = 0
-        self.delta_ylower = 0
-        self.portfolio_xupper = self.period
-        self.delta_yupper = self.portfolio_value * 2
+        self.portfolio_ylower = 0
+        self.portfolio_xupper = self.X_AXIS_WIDTH
+        self.portfolio_yupper = self.portfolio_value * 2
+        self.portfolio_x_moving_threshold = ceil((self.portfolio_xlower + self.portfolio_xupper) * 0.8)
 
         self.figure_price_id = 1
         self.figure_price = plot.figure(self.figure_price_id)
@@ -163,7 +232,7 @@ class SimulationForm(QtGui.QMainWindow):
         self.layoutGraphDelta.addWidget(self.canvas_delta)
         self.canvas_delta.figure.clear()
         plot.xlim(self.portfolio_xlower, self.portfolio_xupper)
-        plot.ylim(self.delta_ylower, self.delta_yupper)
+        plot.ylim(self.portfolio_ylower, self.portfolio_yupper)
         plot.xlabel('period')
         plot.title('portfolio value')
         plot.grid()
@@ -295,7 +364,7 @@ class SimulationForm(QtGui.QMainWindow):
         # create running data for price graphic by filtering the data from index 0 to num.
         # the num is increased by 1 per execution (num is the sequence number of the frame about to be displayed)
         running_data = data[..., :num + 1]
-        self.frame_n = num
+        self.current_frame = num
 
         # get the last values of x and y of the running data, transform them, and append them to the data for
         # the delta graphic so that delta graphic mirrors price graphic
@@ -306,7 +375,8 @@ class SimulationForm(QtGui.QMainWindow):
             self.unit_price = last_price
             self.calculate_values()
             self.update_value_displays()
-            self.edit_time.setText(str(int(num * self.interval_time)))
+            self.current_time = int(num * self.INTERVAL_TIME)
+            self.edit_time.setText(str(self.current_time))
             self.data_delta = np.insert(self.data_delta,
                                         np.shape(self.data_delta)[1],
                                         [last_t, self.portfolio_value],
@@ -331,33 +401,66 @@ class SimulationForm(QtGui.QMainWindow):
         line.set_data(running_data)
         self.update_value_displays()
 
+        # update y-axis
         if self.unit_price > self.price_yupper * 90.0 / 100.0 or self.unit_price > self.price_yupper:
-            self.price_yupper += (self.price_yupper + abs(self.delta_ylower)) * 10 / 100.0
+            self.price_yupper += (self.price_yupper + abs(self.portfolio_ylower)) * 10 / 100.0
             self.refresh_price_plot()
         if self.unit_price < self.price_ylower * 10.0 / 100.0 or self.unit_price < self.price_ylower:
-            self.price_ylower -= (self.price_yupper + abs(self.delta_ylower)) * 10 / 100.0
+            self.price_ylower -= (self.price_yupper + abs(self.portfolio_ylower)) * 10 / 100.0
             self.refresh_price_plot()
 
-        if self.portfolio_value > self.delta_yupper * 90.0 / 100.0 or self.portfolio_value > self.delta_yupper:
-            self.delta_yupper += (self.delta_yupper + abs(self.delta_ylower)) * 10 / 100.0
+        if self.portfolio_value > self.portfolio_yupper * 90.0 / 100.0 or self.portfolio_value > self.portfolio_yupper:
+            self.portfolio_yupper += (self.portfolio_yupper + abs(self.portfolio_ylower)) * 10 / 100.0
             self.refresh_delta_plot()
-        if self.portfolio_value < self.delta_ylower * 10.0 / 100.0 or self.portfolio_value < self.delta_ylower:
-            self.delta_ylower -= (self.delta_yupper + abs(self.delta_ylower)) * 10 / 100.0
-            self.refresh_delta_plot()
-
-        if self.benchmark_portfolio_value > self.delta_yupper * 90.0 / 100.0 or \
-                        self.benchmark_portfolio_value > self.delta_yupper:
-            self.delta_yupper += (self.delta_yupper + abs(self.delta_ylower)) * 10 / 100.0
-            self.refresh_delta_plot()
-        if self.benchmark_portfolio_value < self.delta_ylower * 10.0 / 100.0 or \
-                        self.benchmark_portfolio_value < self.delta_ylower:
-            self.delta_ylower -= (self.delta_yupper + abs(self.delta_ylower)) * 10 / 100.0
+        if self.portfolio_value < self.portfolio_ylower * 10.0 / 100.0 or self.portfolio_value < self.portfolio_ylower:
+            self.portfolio_ylower -= (self.portfolio_yupper + abs(self.portfolio_ylower)) * 10 / 100.0
             self.refresh_delta_plot()
 
-        if num >= self.NUMBER_OF_FRAMES - 1:
+        if self.benchmark_portfolio_value > self.portfolio_yupper * 90.0 / 100.0 or \
+                        self.benchmark_portfolio_value > self.portfolio_yupper:
+            self.portfolio_yupper += (self.portfolio_yupper + abs(self.portfolio_ylower)) * 10 / 100.0
+            self.refresh_delta_plot()
+        if self.benchmark_portfolio_value < self.portfolio_ylower * 10.0 / 100.0 or \
+                        self.benchmark_portfolio_value < self.portfolio_ylower:
+            self.portfolio_ylower -= (self.portfolio_yupper + abs(self.portfolio_ylower)) * 10 / 100.0
+            self.refresh_delta_plot()
+
+        # update x-axis
+        if self.current_time > self.price_x_moving_threshold and self.price_xupper < self.period:
+            delta = self.current_time - self.price_x_moving_threshold
+            self.price_xlower += delta
+            self.price_xupper += delta
+            self.price_x_moving_threshold += delta
+            self.refresh_price_plot()
+
+        if self.current_time > self.portfolio_x_moving_threshold and self.portfolio_xupper < self.period:
+            delta = self.current_time - self.portfolio_x_moving_threshold
+            self.portfolio_xlower += delta
+            self.portfolio_xupper += delta
+            self.portfolio_x_moving_threshold += delta
+            self.refresh_delta_plot()
+
+        if num >= self.number_of_frames - 1:
+            # save data
             self.save_data()
             self.save_user_actions()
 
+            # add result to all results in main_program to be displayed on the last form
+            gain_value = self.portfolio_value - self.benchmark_portfolio_value
+            reward = 0
+            if gain_value < 0:
+                reward = self.fix_compensation
+            else:
+                reward = self.fix_compensation + (self.add_compensation * gain_value)
+            result = [self.experiment_name, self.fix_compensation, self.add_compensation, gain_value, reward]
+            self.main_program.results.append(result)
+
+            # show end result of current experiment
+            self.result_dialog.set_result(self.portfolio_value, self.benchmark_portfolio_value)
+            self.result_dialog.exec_()
+            self.instruction_dialog.close()
+
+            # enable next button
             self.simulation_started = False
             self.button_start.setEnabled(True)
             self.button_start.setText("Next")
@@ -372,12 +475,13 @@ class SimulationForm(QtGui.QMainWindow):
 
     def plot_price(self):
         T = self.period
-        mu = 0.0
-        sigma = 0.1
+        mu = self.mu
+        sigma = self.sigma
         S0 = self.unit_price  # 20
-        dt = self.interval_time
+        dt = self.INTERVAL_TIME
         # dt = 0.1
-        N = round(T / dt)
+        # N = round(T / dt) + 1
+        N = self.number_of_frames
         t = np.linspace(0, T, N)
         W = np.random.standard_normal(size=N)
         W = np.cumsum(W) * np.sqrt(dt)  ### standard brownian motion ###
@@ -390,9 +494,9 @@ class SimulationForm(QtGui.QMainWindow):
         self.refresh_price_plot()
 
         self.function_animation_price = animation.FuncAnimation(self.figure_price, self.update_line_price,
-                                                                self.NUMBER_OF_FRAMES,
+                                                                self.number_of_frames,
                                                                 fargs=(self.data_price, l),
-                                                                interval=self.interval_time,
+                                                                interval=self.INTERVAL_TIME * 1000,
                                                                 blit=False, repeat=False)
         self.canvas_price.draw()
         self.canvas_price.show()
@@ -403,9 +507,9 @@ class SimulationForm(QtGui.QMainWindow):
         self.refresh_delta_plot()
 
         self.function_animation_delta = animation.FuncAnimation(self.figure_delta, self.update_line_delta,
-                                                                self.NUMBER_OF_FRAMES,
+                                                                self.number_of_frames,
                                                                 fargs=(self.data_delta, l),
-                                                                interval=self.interval_time,
+                                                                interval=self.INTERVAL_TIME * 1000,
                                                                 blit=False, repeat=False)
         self.canvas_delta.draw()
         self.canvas_delta.show()
@@ -413,15 +517,15 @@ class SimulationForm(QtGui.QMainWindow):
     def plot_benchmark(self):
         l, = plot.plot([], [])
         self.function_animation_benchmark = animation.FuncAnimation(self.figure_delta, self.update_line_benchmark,
-                                                                    self.NUMBER_OF_FRAMES,
+                                                                    self.number_of_frames,
                                                                     fargs=(self.data_benchmark, l),
-                                                                    interval=self.interval_time,
+                                                                    interval=self.INTERVAL_TIME * 1000,
                                                                     blit=False, repeat=False)
         self.canvas_delta.draw()
         self.canvas_delta.show()
 
     def save_user_actions(self):
-        data = ["frame,price,portfolio,unit,asset_v,asset_p,cash_v,cash_p,"
+        data = ["second,price,portfolio,unit,asset_v,asset_p,cash_v,cash_p,"
                 "b_portfolio,b_unit,b_asset_v,b_asset_p,b_cash_v,b_cash_p"]
 
         for t in range(0, len(self.user_data_frame)):
@@ -454,15 +558,36 @@ class SimulationForm(QtGui.QMainWindow):
         f.close()
 
     def save_data(self):
-        data = ["frame,price,portfolio,unit,asset_v,asset_p,cash_v,cash_p,"
+        data = ["second,price,portfolio,unit,asset_v,asset_p,cash_v,cash_p,"
                 "b_portfolio,b_unit,b_asset_v,b_asset_p,b_cash_v,b_cash_p"]
 
         prices = self.data_price[1].tolist()
         portfolio_values = self.data_delta[1].tolist()
         benchmark_portfolio_values = self.data_benchmark[1].tolist()
 
+        # append initial configuration
+        row = [str(self.user_data_frame[0]),
+               str(self.user_data_price[0]),
+               str(self.user_data_portfolio[0]),
+               str(self.user_data_unit_count[0]),
+               str(self.user_data_asset_value[0]),
+               str(self.user_data_asset_percentage[0]),
+               str(self.user_data_cash_value[0]),
+               str(self.user_data_cash_percentage[0]),
+               str(self.user_data_benchmark[0]),
+               str(self.user_data_benchmark_unit_count[0]),
+               str(self.user_data_benchmark_asset_value[0]),
+               str(self.user_data_benchmark_asset_percentage[0]),
+               str(self.user_data_benchmark_cash_value[0]),
+               str(self.user_data_benchmark_cash_percentage[0])
+               ]
+
+        row_string = ",".join(row)
+        data.append(row_string)
+
+        # append the the rest of the data
         for t in range(0, len(portfolio_values)):
-            row = [str(t),
+            row = [str(t * self.INTERVAL_TIME),
                    str(prices[t]),
                    str(portfolio_values[t]),
                    str(self.data_unit_count[t]),
@@ -501,13 +626,13 @@ class SimulationForm(QtGui.QMainWindow):
     def refresh_delta_plot(self):
         self.figure_delta = plot.figure(self.figure_delta_id)
         plot.xlim(self.portfolio_xlower, self.portfolio_xupper)
-        plot.ylim(self.delta_ylower, self.delta_yupper)
+        plot.ylim(self.portfolio_ylower, self.portfolio_yupper)
         plot.xlabel('period')
         plot.title('portfolio value')
         plot.grid()
 
     def record_user_action(self):
-        self.user_data_frame.append(self.frame_n)
+        self.user_data_frame.append(self.current_frame * self.INTERVAL_TIME)
         self.user_data_price.append(self.unit_price)
         self.user_data_portfolio.append(self.portfolio_value)
         self.user_data_unit_count.append(self.unit_count)
@@ -521,4 +646,3 @@ class SimulationForm(QtGui.QMainWindow):
         self.user_data_benchmark_asset_percentage.append(self.benchmark_asset_value)
         self.user_data_benchmark_cash_value.append(self.benchmark_cash_value)
         self.user_data_benchmark_cash_percentage.append(self.benchmark_cash_percentage)
-
