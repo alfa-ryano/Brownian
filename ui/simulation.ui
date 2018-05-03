@@ -148,6 +148,9 @@ color: rgb(0, 0, 0);</string>
       </item>
       <item>
        <widget class="QPushButton" name="button_start">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="font">
          <font>
           <pointsize>16</pointsize>

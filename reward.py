@@ -2,8 +2,8 @@ from PyQt4 import QtGui, uic
 from PyQt4.QtGui import QMessageBox, QHeaderView, QTableWidget, QColor, QPalette
 from PyQt4.QtCore import QFile, QTextStream, QSize
 import os
-import threading
 import random
+from customutil import EventTimer
 
 
 class RewardForm(QtGui.QMainWindow):
@@ -65,15 +65,30 @@ class RewardForm(QtGui.QMainWindow):
                     self.table_results.setItem(row_index, column_index, cell)
                 cell.setBackground(QColor(200, 200, 200))
 
+            data = []
+            for item in self.main_program.results[row_index]:
+                data.append(str(item))
+            data = [",".join(data)]
+
+            folder = "result"
+            filename = str(self.main_program.user_id) + "-" + str(
+                self.windowTitle()) + "-user-" + os.environ['COMPUTERNAME'].replace("-", "_") + "_reward.csv"
+            filename = filename.replace(" ", "_").lower()
+            path = folder + os.sep + filename
+            f = open(path, 'w')
+            f.write("\n".join(data))
+            f.close()
+
         self.button_stop_shuffling.setEnabled(False)
         self.button_close.setEnabled(True)
+
 
     def on_button_close(self):
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Warning)
-        msg.setWindowTitle('Are you sure want to exit?')
-        msg.setText("Are you sure want to exit? Please printscreen to take a picture of the results "
-                    "as a proof for your reward")
+        msg.setWindowTitle('Warning')
+        msg.setText("Are you sure want to exit?\n\nPlease print the screen or take a picture of the result "
+                    "as a proof for your reward.")
         msg.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
         return_value = msg.exec_()
         if return_value == msg.Yes:
@@ -85,25 +100,4 @@ class RewardForm(QtGui.QMainWindow):
         self.label_random_number.setText(str(self.random_selected_case))
 
 
-class EventTimer:
-    def __init__(self, interval, function):
-        self.is_enabled = False
-        self.function = function
-        self.timer = None
-        self.interval = interval
 
-    def start(self):
-        self.is_enabled = True
-        self.run()
-
-    def run(self):
-        if self.is_enabled:
-            self.function()
-            self.timer = threading.Timer(self.interval, self.run)
-            self.timer.start()
-
-    def stop(self):
-        self.is_enabled = False
-        if self.timer is not None:
-            self.timer.cancel()
-            self.timer = None

@@ -7,6 +7,10 @@ import numpy as np
 import random
 import os
 from math import ceil
+from customutil import CountDownTimer
+
+
+COUNTDOWN_COUNT = 1
 
 
 class ResultDialog(QtGui.QDialog):
@@ -16,13 +20,31 @@ class ResultDialog(QtGui.QDialog):
         uic.loadUi('ui/result.ui', self)
         self.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
         self.main_form = main_form
-        self.button_ok.clicked.connect(self.on_button_ok_clicked)
+        self.button_next.clicked.connect(self.on_button_next_clicked)
+
+        self.counter = None
+        self.countDownTimer = None
+
+    def showEvent(self, show_event):
+        super(ResultDialog, self).showEvent(show_event)
+        self.counter = COUNTDOWN_COUNT
+        self.countDownTimer = CountDownTimer(10, 0, 1, self.countdown)
+        self.countDownTimer.start()
+
+    def countdown(self):
+        if self.counter > 0:
+            self.button_next.setText("NEXT (" + str(self.counter) + ")")
+            self.counter -= 1
+        else:
+            self.countDownTimer.stop()
+            self.button_next.setEnabled(True)
+            self.button_next.setText("NEXT")
 
     def keyPressEvent(self, event):
         if not event.key() == Qt.Key_Escape:
             super(ResultDialog, self).keyPressEvent(event)
 
-    def on_button_ok_clicked(self):
+    def on_button_next_clicked(self):
         self.accept()
 
     def set_result(self, portfolio_value, benchmark_value):
@@ -48,6 +70,19 @@ class InstructionDialog(QtGui.QDialog):
         self.text_edit_instruction.setHtml(input_stream.readAll())
         f.close()
 
+        self.counter = COUNTDOWN_COUNT
+        self.countDownTimer = CountDownTimer(10, 0, 1, self.countdown)
+        self.countDownTimer.start()
+
+    def countdown(self):
+        if self.counter > 0:
+            self.button_ok.setText("NEXT (" + str(self.counter) + ")")
+            self.counter -= 1
+        else:
+            self.countDownTimer.stop()
+            self.button_ok.setEnabled(True)
+            self.button_ok.setText("NEXT")
+
     def keyPressEvent(self, event):
         if not event.key() == Qt.Key_Escape:
             super(InstructionDialog, self).keyPressEvent(event)
@@ -70,6 +105,19 @@ class InputAssetDialog(QtGui.QDialog):
         input_stream = QTextStream(f)
         self.text_edit_instruction.setHtml(input_stream.readAll())
         f.close()
+
+        self.counter = COUNTDOWN_COUNT
+        self.countDownTimer = CountDownTimer(10, 0, 1, self.countdown)
+        self.countDownTimer.start()
+
+    def countdown(self):
+        if self.counter > 0:
+            self.button_ok.setText("NEXT (" + str(self.counter) + ")")
+            self.counter -= 1
+        else:
+            self.countDownTimer.stop()
+            self.button_ok.setEnabled(True)
+            self.button_ok.setText("NEXT")
 
     def keyPressEvent(self, event):
         if not event.key() == Qt.Key_Escape:
@@ -203,25 +251,25 @@ class SimulationForm(QtGui.QMainWindow):
         self.record_user_action()
 
         # initialise graphics
-        self.price_xlower = 0
-        self.price_ylower = 0
-        self.price_xupper = self.X_AXIS_WIDTH
-        self.price_yupper = self.unit_price * 2
-        self.price_x_moving_threshold = ceil((self.price_xlower + self.price_xupper) * 0.8)
+        self.price_x_lower = 0
+        self.price_y_lower = 0
+        self.price_x_upper = self.X_AXIS_WIDTH
+        self.price_y_upper = self.unit_price * 2
+        self.price_x_moving_threshold = ceil((self.price_x_lower + self.price_x_upper) * 0.8)
 
-        self.portfolio_xlower = 0
-        self.portfolio_ylower = 0
-        self.portfolio_xupper = self.X_AXIS_WIDTH
-        self.portfolio_yupper = self.portfolio_value * 2
-        self.portfolio_x_moving_threshold = ceil((self.portfolio_xlower + self.portfolio_xupper) * 0.8)
+        self.portfolio_x_lower = 0
+        self.portfolio_y_lower = 0
+        self.portfolio_x_upper = self.X_AXIS_WIDTH
+        self.portfolio_y_upper = self.portfolio_value * 2
+        self.portfolio_x_moving_threshold = ceil((self.portfolio_x_lower + self.portfolio_x_upper) * 0.8)
 
         self.figure_price_id = 1
         self.figure_price = plot.figure(self.figure_price_id)
         self.canvas_price = FigureCanvas(self.figure_price)
         self.layoutGraphPrice.addWidget(self.canvas_price)
         self.canvas_price.figure.clear()
-        plot.xlim(self.price_xlower, self.price_xupper)
-        plot.ylim(self.price_ylower, self.price_yupper)
+        plot.xlim(self.price_x_lower, self.price_x_upper)
+        plot.ylim(self.price_y_lower, self.price_y_upper)
         plot.xlabel('period')
         plot.title('price per unit')
         plot.grid()
@@ -231,11 +279,24 @@ class SimulationForm(QtGui.QMainWindow):
         self.canvas_delta = FigureCanvas(self.figure_delta)
         self.layoutGraphDelta.addWidget(self.canvas_delta)
         self.canvas_delta.figure.clear()
-        plot.xlim(self.portfolio_xlower, self.portfolio_xupper)
-        plot.ylim(self.portfolio_ylower, self.portfolio_yupper)
+        plot.xlim(self.portfolio_x_lower, self.portfolio_x_upper)
+        plot.ylim(self.portfolio_y_lower, self.portfolio_y_upper)
         plot.xlabel('period')
         plot.title('portfolio value')
         plot.grid()
+
+        self.counter = COUNTDOWN_COUNT
+        self.countDownTimer = CountDownTimer(10, 0, 1, self.countdown)
+        self.countDownTimer.start()
+
+    def countdown(self):
+        if self.counter > 0:
+            self.button_start.setText("START (" + str(self.counter) + ")")
+            self.counter -= 1
+        else:
+            self.countDownTimer.stop()
+            self.button_start.setEnabled(True)
+            self.button_start.setText("START")
 
     def on_push_button_start_clicked(self):
         if self.ready_for_next is True:
@@ -402,41 +463,41 @@ class SimulationForm(QtGui.QMainWindow):
         self.update_value_displays()
 
         # update y-axis
-        if self.unit_price > self.price_yupper * 90.0 / 100.0 or self.unit_price > self.price_yupper:
-            self.price_yupper += (self.price_yupper + abs(self.portfolio_ylower)) * 10 / 100.0
+        if self.unit_price > self.price_y_upper * 90.0 / 100.0 or self.unit_price > self.price_y_upper:
+            self.price_y_upper += (self.price_y_upper + abs(self.portfolio_y_lower)) * 10 / 100.0
             self.refresh_price_plot()
-        if self.unit_price < self.price_ylower * 10.0 / 100.0 or self.unit_price < self.price_ylower:
-            self.price_ylower -= (self.price_yupper + abs(self.portfolio_ylower)) * 10 / 100.0
+        if self.unit_price < self.price_y_lower * 10.0 / 100.0 or self.unit_price < self.price_y_lower:
+            self.price_y_lower -= (self.price_y_upper + abs(self.portfolio_y_lower)) * 10 / 100.0
             self.refresh_price_plot()
 
-        if self.portfolio_value > self.portfolio_yupper * 90.0 / 100.0 or self.portfolio_value > self.portfolio_yupper:
-            self.portfolio_yupper += (self.portfolio_yupper + abs(self.portfolio_ylower)) * 10 / 100.0
+        if self.portfolio_value > self.portfolio_y_upper * 90.0 / 100.0 or self.portfolio_value > self.portfolio_y_upper:
+            self.portfolio_y_upper += (self.portfolio_y_upper + abs(self.portfolio_y_lower)) * 10 / 100.0
             self.refresh_delta_plot()
-        if self.portfolio_value < self.portfolio_ylower * 10.0 / 100.0 or self.portfolio_value < self.portfolio_ylower:
-            self.portfolio_ylower -= (self.portfolio_yupper + abs(self.portfolio_ylower)) * 10 / 100.0
+        if self.portfolio_value < self.portfolio_y_lower * 10.0 / 100.0 or self.portfolio_value < self.portfolio_y_lower:
+            self.portfolio_y_lower -= (self.portfolio_y_upper + abs(self.portfolio_y_lower)) * 10 / 100.0
             self.refresh_delta_plot()
 
-        if self.benchmark_portfolio_value > self.portfolio_yupper * 90.0 / 100.0 or \
-                        self.benchmark_portfolio_value > self.portfolio_yupper:
-            self.portfolio_yupper += (self.portfolio_yupper + abs(self.portfolio_ylower)) * 10 / 100.0
+        if self.benchmark_portfolio_value > self.portfolio_y_upper * 90.0 / 100.0 or \
+                        self.benchmark_portfolio_value > self.portfolio_y_upper:
+            self.portfolio_y_upper += (self.portfolio_y_upper + abs(self.portfolio_y_lower)) * 10 / 100.0
             self.refresh_delta_plot()
-        if self.benchmark_portfolio_value < self.portfolio_ylower * 10.0 / 100.0 or \
-                        self.benchmark_portfolio_value < self.portfolio_ylower:
-            self.portfolio_ylower -= (self.portfolio_yupper + abs(self.portfolio_ylower)) * 10 / 100.0
+        if self.benchmark_portfolio_value < self.portfolio_y_lower * 10.0 / 100.0 or \
+                        self.benchmark_portfolio_value < self.portfolio_y_lower:
+            self.portfolio_y_lower -= (self.portfolio_y_upper + abs(self.portfolio_y_lower)) * 10 / 100.0
             self.refresh_delta_plot()
 
         # update x-axis
-        if self.current_time > self.price_x_moving_threshold and self.price_xupper < self.period:
+        if self.current_time > self.price_x_moving_threshold and self.price_x_upper < self.period:
             delta = self.current_time - self.price_x_moving_threshold
-            self.price_xlower += delta
-            self.price_xupper += delta
+            self.price_x_lower += delta
+            self.price_x_upper += delta
             self.price_x_moving_threshold += delta
             self.refresh_price_plot()
 
-        if self.current_time > self.portfolio_x_moving_threshold and self.portfolio_xupper < self.period:
+        if self.current_time > self.portfolio_x_moving_threshold and self.portfolio_x_upper < self.period:
             delta = self.current_time - self.portfolio_x_moving_threshold
-            self.portfolio_xlower += delta
-            self.portfolio_xupper += delta
+            self.portfolio_x_lower += delta
+            self.portfolio_x_upper += delta
             self.portfolio_x_moving_threshold += delta
             self.refresh_delta_plot()
 
@@ -463,7 +524,7 @@ class SimulationForm(QtGui.QMainWindow):
             # enable next button
             self.simulation_started = False
             self.button_start.setEnabled(True)
-            self.button_start.setText("Next")
+            self.button_start.setText("NEXT")
             self.ready_for_next = True
 
     def update_line_delta(self, num, data, line):
@@ -617,16 +678,16 @@ class SimulationForm(QtGui.QMainWindow):
 
     def refresh_price_plot(self):
         self.figure_price = plot.figure(self.figure_price_id)
-        plot.xlim(self.price_xlower, self.price_xupper)
-        plot.ylim(self.price_ylower, self.price_yupper)
+        plot.xlim(self.price_x_lower, self.price_x_upper)
+        plot.ylim(self.price_y_lower, self.price_y_upper)
         plot.xlabel('period')
         plot.title('price per unit')
         plot.grid()
 
     def refresh_delta_plot(self):
         self.figure_delta = plot.figure(self.figure_delta_id)
-        plot.xlim(self.portfolio_xlower, self.portfolio_xupper)
-        plot.ylim(self.portfolio_ylower, self.portfolio_yupper)
+        plot.xlim(self.portfolio_x_lower, self.portfolio_x_upper)
+        plot.ylim(self.portfolio_y_lower, self.portfolio_y_upper)
         plot.xlabel('period')
         plot.title('portfolio value')
         plot.grid()

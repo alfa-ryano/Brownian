@@ -23,6 +23,8 @@ class MainProgram:
     INDEX_SIGMA = 11
     INDEX_MAIN_INSTRUCTION = 12
 
+    WAIT_TIME = 10
+
     results = []
 
     def __init__(self):
