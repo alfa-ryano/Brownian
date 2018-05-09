@@ -4,5 +4,8 @@
 .spyderworkpace
 *.pyc
 .idea/workspace.xml
+decision/*
+result/*
+reward/*
 *.zip
 *.iml
