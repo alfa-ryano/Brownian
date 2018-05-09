@@ -26,7 +26,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Setting Initial Asset Value</string>
+        <string>Setting Initial Allocation in the Stock Market</string>
        </property>
       </widget>
      </item>
@@ -47,7 +47,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Initial Asset Value</string>
+        <string>Initial Allocation in the Stock Market</string>
        </property>
       </widget>
      </item>

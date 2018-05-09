@@ -1,4 +1,4 @@
-name, portfolio, period, fix_comp, add_comp, b_asset, interest, dialog_file, simulation_file, mu, sigma
-Simulation 01, 100, 75, 10, 0.5, 10, 0, dialog_01.html, simulation_01.html, 0.0, 0.1, instruction_01.html
-Simulation 02, 150, 90, 11, 0.6, 20, 0, dialog_02.html, simulation_02.html, 0.0, 0.1, instruction_02.html
-Simulation 03, 200, 105, 12, 0.7, 25, 0, dialog_03.html, simulation_03.html, 0.0, 0.1, instruction_03.html
+name, portfolio, period, fix_comp, add_comp, b_asset, interest, dialog_file, simulation_file, mu, sigma,
+Simulation 01,100,61,10,0.5,10,0, dialog_01.html, simulation_01.html,0.01,0.1, instruction_01.html
+Simulation 02,150,62,11,0.6,20,0, dialog_02.html, simulation_02.html,0.01,0.1, instruction_02.html
+Simulation 03,200, 63,12,0.7,25,0, dialog_03.html, simulation_03.html,0.01,0.1, instruction_03.html

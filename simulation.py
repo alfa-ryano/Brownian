@@ -133,7 +133,7 @@ class InputAssetDialog(QtGui.QDialog):
 
 class SimulationForm(QtGui.QMainWindow):
     INTERVAL_TIME = 0.1
-    X_AXIS_WIDTH = 60
+    X_AXIS_WIDTH = 50
 
     def __init__(self, main_program, experiment_name, param_simulation_instruction_file, param_dialog_instruction_file,
                  param_portfolio, param_period, param_fix_comp, param_add_comp, param_benchmark_asset, param_interest,
@@ -270,8 +270,8 @@ class SimulationForm(QtGui.QMainWindow):
         self.canvas_price.figure.clear()
         plot.xlim(self.price_x_lower, self.price_x_upper)
         plot.ylim(self.price_y_lower, self.price_y_upper)
-        plot.xlabel('period')
-        plot.title('price per unit')
+        plot.xlabel('Time')
+        plot.title('Price per Unit')
         plot.grid()
 
         self.figure_delta_id = 2
@@ -281,8 +281,8 @@ class SimulationForm(QtGui.QMainWindow):
         self.canvas_delta.figure.clear()
         plot.xlim(self.portfolio_x_lower, self.portfolio_x_upper)
         plot.ylim(self.portfolio_y_lower, self.portfolio_y_upper)
-        plot.xlabel('period')
-        plot.title('portfolio value')
+        plot.xlabel('Time')
+        plot.title('Portfolio Value')
         plot.grid()
 
         self.counter = COUNTDOWN_COUNT
@@ -513,7 +513,10 @@ class SimulationForm(QtGui.QMainWindow):
                 reward = self.fix_compensation
             else:
                 reward = self.fix_compensation + (self.add_compensation * gain_value)
-            result = [self.experiment_name, self.fix_compensation, self.add_compensation, gain_value, reward]
+            result = [self.experiment_name, self.fix_compensation, self.add_compensation,
+                      self.portfolio_value, self.benchmark_portfolio_value,
+                      gain_value, reward
+                      ]
             self.main_program.results.append(result)
 
             # show end result of current experiment
@@ -584,7 +587,8 @@ class SimulationForm(QtGui.QMainWindow):
                                                                     blit=False, repeat=False)
         self.canvas_delta.draw()
         self.canvas_delta.show()
-
+    
+    # saving only the actions made
     def save_user_actions(self):
         data = ["second,price,portfolio,unit,asset_v,asset_p,cash_v,cash_p,"
                 "b_portfolio,b_unit,b_asset_v,b_asset_p,b_cash_v,b_cash_p"]
@@ -609,15 +613,15 @@ class SimulationForm(QtGui.QMainWindow):
             row_string = ",".join(row)
             data.append(row_string)
 
-        folder = "result"
-        filename = str(self.main_program.user_id) + "-" + str(
-            self.windowTitle()) + "-user-" + os.environ['COMPUTERNAME'].replace("-", "_") + ".csv"
+        folder = "decision"
+        filename = "decision_subject " + str(self.main_program.user_id) + "-" + os.environ['COMPUTERNAME'].replace("-", "_") + ".csv"
         filename = filename.replace(" ", "_").lower()
         path = folder + os.sep + filename
         f = open(path, 'w')
         f.write("\n".join(data))
         f.close()
-
+        
+    # saving all data    
     def save_data(self):
         data = ["second,price,portfolio,unit,asset_v,asset_p,cash_v,cash_p,"
                 "b_portfolio,b_unit,b_asset_v,b_asset_p,b_cash_v,b_cash_p"]
@@ -668,8 +672,7 @@ class SimulationForm(QtGui.QMainWindow):
             data.append(row_string)
 
         folder = "result"
-        filename = str(self.main_program.user_id) + "-" + str(
-            self.windowTitle()) + "-" + os.environ['COMPUTERNAME'].replace("-", "_") + ".csv"
+        filename = "result_subject " + str(self.main_program.user_id) + "-" + os.environ['COMPUTERNAME'].replace("-", "_") + ".csv"
         filename = filename.replace(" ", "_").lower()
         path = folder + os.sep + filename
         f = open(path, 'w')
@@ -680,16 +683,16 @@ class SimulationForm(QtGui.QMainWindow):
         self.figure_price = plot.figure(self.figure_price_id)
         plot.xlim(self.price_x_lower, self.price_x_upper)
         plot.ylim(self.price_y_lower, self.price_y_upper)
-        plot.xlabel('period')
-        plot.title('price per unit')
+        plot.xlabel('Time')
+        plot.title('Price per Unit')
         plot.grid()
 
     def refresh_delta_plot(self):
         self.figure_delta = plot.figure(self.figure_delta_id)
         plot.xlim(self.portfolio_x_lower, self.portfolio_x_upper)
         plot.ylim(self.portfolio_y_lower, self.portfolio_y_upper)
-        plot.xlabel('period')
-        plot.title('portfolio value')
+        plot.xlabel('Time')
+        plot.title('Portfolio Value')
         plot.grid()
 
     def record_user_action(self):

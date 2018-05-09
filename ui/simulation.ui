@@ -229,7 +229,7 @@ color: rgb(0, 0, 0);</string>
            </font>
           </property>
           <property name="text">
-           <string>Period</string>
+           <string>Time</string>
           </property>
          </widget>
         </item>
@@ -269,7 +269,7 @@ color: rgb(0, 0, 0);</string>
          </font>
         </property>
         <property name="title">
-         <string>Next Adjustment on Assets in Stock Market</string>
+         <string>Next Adjustment on Allocation in the Stock Market</string>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_4">
          <item>
