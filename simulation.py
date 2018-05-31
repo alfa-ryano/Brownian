@@ -6,6 +6,7 @@ import matplotlib.animation as animation
 import numpy as np
 import random
 import os
+import socket
 from math import ceil
 from customutil import CountDownTimer
 
@@ -617,7 +618,7 @@ class SimulationForm(QtGui.QMainWindow):
             data.append(row_string)
 
         folder = "decision"
-        filename = "decision_subject " + str(self.main_program.user_id) + "-" + str(self.windowTitle()) + "-" + os.environ['COMPUTERNAME'].replace("-", "_") + ".csv"
+        filename = "decision_subject " + str(self.main_program.user_id) + "-" + str(self.windowTitle()) + "-" + socket.gethostname().replace("-", "_") + ".csv"
         filename = filename.replace(" ", "_").lower()
         path = folder + os.sep + filename
         f = open(path, 'w')
@@ -675,7 +676,7 @@ class SimulationForm(QtGui.QMainWindow):
             data.append(row_string)
 
         folder = "result"
-        filename = "result_subject-" + str(self.main_program.user_id) + "-" + str(self.windowTitle()) + "-" + os.environ['COMPUTERNAME'].replace("-", "_") + ".csv"
+        filename = "result_subject-" + str(self.main_program.user_id) + "-" + str(self.windowTitle()) + "-" + socket.gethostname().replace("-", "_") + ".csv"
         filename = filename.replace(" ", "_").lower()
         path = folder + os.sep + filename
         f = open(path, 'w')
