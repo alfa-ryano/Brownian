@@ -614,7 +614,7 @@ class SimulationForm(QtGui.QMainWindow):
             data.append(row_string)
 
         folder = "decision"
-        filename = "decision_subject " + str(self.main_program.user_id) + "-" + os.environ['COMPUTERNAME'].replace("-", "_") + ".csv"
+        filename = "decision_subject " + str(self.main_program.user_id) + "-" + str(self.windowTitle()) + "-" + os.environ['COMPUTERNAME'].replace("-", "_") + ".csv"
         filename = filename.replace(" ", "_").lower()
         path = folder + os.sep + filename
         f = open(path, 'w')
@@ -672,7 +672,7 @@ class SimulationForm(QtGui.QMainWindow):
             data.append(row_string)
 
         folder = "result"
-        filename = "result_subject " + str(self.main_program.user_id) + "-" + os.environ['COMPUTERNAME'].replace("-", "_") + ".csv"
+        filename = "result_subject-" + str(self.main_program.user_id) + "-" + str(self.windowTitle()) + "-" + os.environ['COMPUTERNAME'].replace("-", "_") + ".csv"
         filename = filename.replace(" ", "_").lower()
         path = folder + os.sep + filename
         f = open(path, 'w')
