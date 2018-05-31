@@ -1,5 +1,6 @@
 from PyQt4 import QtGui, uic
-from customutil import CountDownTimer
+from PyQt4.QtGui import QMessageBox
+import ConfigParser
 
 COUNTDOWN_COUNT = 1
 
@@ -12,18 +13,17 @@ class WelcomeForm(QtGui.QMainWindow):
         uic.loadUi('ui/welcome.ui', self)
         self.button_next.clicked.connect(self.on_button_next_click)
 
-        self.counter = COUNTDOWN_COUNT
-        self.countDownTimer = CountDownTimer(10, 0, 1, self.countdown)
-        self.countDownTimer.start()
-
-    def countdown(self):
-        if self.counter > 0:
-            self.button_next.setText("Next (" + str(self.counter) + ")")
-            self.counter -= 1
-        else:
-            self.countDownTimer.stop()
-            self.button_next.setEnabled(True)
-            self.button_next.setText("Next")
-
     def on_button_next_click(self):
-        self.main_program.show_next_form()
+        config = ConfigParser.RawConfigParser()
+        config.read('configuration/application.conf')
+        locked = int(config.getfloat('CONFIG', 'locked'))
+        if locked == 0:
+            self.main_program.show_next_form()
+        else:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Information)
+            msg.setWindowTitle('Information')
+            msg.setText("The application is still locked. You will be informed when the application is already opened "
+                        "by the administrator.")
+            msg.setStandardButtons(QMessageBox.Cancel)
+            msg.exec_()

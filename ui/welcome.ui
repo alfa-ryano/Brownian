@@ -72,7 +72,7 @@
         <item>
          <widget class="QPushButton" name="button_next">
           <property name="enabled">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <property name="minimumSize">
            <size>
