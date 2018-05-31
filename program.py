@@ -3,6 +3,7 @@ from PyQt4 import QtGui, QtCore
 from register import RegisterForm
 from simulation import SimulationForm
 from reward import RewardForm
+from welcome import WelcomeForm
 import csv
 
 
@@ -33,6 +34,7 @@ class MainProgram:
 
         self.form_confs = []
         self.form_confs.append([RegisterForm.__name__, "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"])
+        self.form_confs.append([WelcomeForm.__name__, "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"])
 
         with open("configuration/simulation_configuration.csv", "r") as f:
             reader = csv.reader(f, delimiter=",")
@@ -63,6 +65,8 @@ class MainProgram:
         form_conf = self.form_confs[self.current_form_index]
         if form_conf[self.INDEX_FORM_TYPE] == RegisterForm.__name__:
             self.current_form = RegisterForm(self)
+        elif form_conf[self.INDEX_FORM_TYPE] == WelcomeForm.__name__:
+            self.current_form = WelcomeForm(self)
         elif form_conf[self.INDEX_FORM_TYPE] == SimulationForm.__name__:
             self.current_form = SimulationForm(self, form_conf[self.INDEX_FORM_TITLE],
                                                form_conf[self.INDEX_SIMULATION_INSTRUCTION],
@@ -92,6 +96,8 @@ class MainProgram:
         form_conf = self.form_confs[self.current_form_index]
         if form_conf[self.INDEX_FORM_TYPE] == RegisterForm.__name__:
             self.current_form = RegisterForm(self)
+        elif form_conf[self.INDEX_FORM_TYPE] == WelcomeForm.__name__:
+            self.current_form = WelcomeForm(self)
         elif form_conf[self.INDEX_FORM_TYPE] == SimulationForm.__name__:
             self.current_form = SimulationForm(self, form_conf[self.INDEX_FORM_TITLE],
                                                form_conf[self.INDEX_SIMULATION_INSTRUCTION],

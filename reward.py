@@ -26,6 +26,9 @@ class RewardForm(QtGui.QMainWindow):
 
         self.table_results.setRowCount(0)
         for result in self.main_program.results:
+            if "Practice" in result[0]:
+                continue
+
             row_position = self.table_results.rowCount()
             self.table_results.insertRow(row_position)
             self.table_results.setItem(row_position, 0, QtGui.QTableWidgetItem(str(result[0])))
@@ -74,8 +77,7 @@ class RewardForm(QtGui.QMainWindow):
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Warning)
         msg.setWindowTitle('Warning')
-        msg.setText("Are you sure want to exit?\n\nPlease print the screen or take a picture of the result "
-                    "as a proof for your reward.")
+        msg.setText("Are you sure want to exit?\n\nPlease ask the reception desk for further steps.")
         msg.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
         return_value = msg.exec_()
         if return_value == msg.Yes:

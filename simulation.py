@@ -56,12 +56,13 @@ class ResultDialog(QtGui.QDialog):
 
 
 class InstructionDialog(QtGui.QDialog):
-    def __init__(self, main_form, dialog_file):
+    def __init__(self, main_form, dialog_file, experiment_name):
         super(InstructionDialog, self).__init__()
 
         uic.loadUi('ui/instruction.ui', self)
         self.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
         self.main_form = main_form
+        self.label_title.setText(experiment_name)
         self.button_ok.clicked.connect(self.on_button_ok_clicked)
 
         f = QFile(dialog_file)
@@ -92,12 +93,13 @@ class InstructionDialog(QtGui.QDialog):
 
 
 class InputAssetDialog(QtGui.QDialog):
-    def __init__(self, main_form, dialog_file):
+    def __init__(self, main_form, dialog_file, experiment_name):
         super(InputAssetDialog, self).__init__()
 
         uic.loadUi('ui/dialog.ui', self)
         self.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
         self.main_form = main_form
+        self.label_title.setText(experiment_name)
         self.button_ok.clicked.connect(self.on_button_ok_clicked)
 
         f = QFile(dialog_file)
@@ -152,14 +154,14 @@ class SimulationForm(QtGui.QMainWindow):
         self.number_of_frames = int(self.period / self.INTERVAL_TIME) + 1
 
         # main instruction
-        self.instruction_dialog = InstructionDialog(self, param_main_instruction_file)
+        self.instruction_dialog = InstructionDialog(self, param_main_instruction_file, self.experiment_name)
         self.instruction_dialog.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
         self.instruction_dialog.setWindowState(QtCore.Qt.WindowMaximized)
         self.instruction_dialog.exec_()
         self.instruction_dialog.close()
 
         # set asset dialog
-        self.input_asset_dialog = InputAssetDialog(self, param_dialog_instruction_file)
+        self.input_asset_dialog = InputAssetDialog(self, param_dialog_instruction_file, self.experiment_name)
         self.input_asset_dialog.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
         self.input_asset_dialog.setWindowState(QtCore.Qt.WindowMaximized)
         self.input_asset_dialog.exec_()
@@ -211,6 +213,7 @@ class SimulationForm(QtGui.QMainWindow):
 
         uic.loadUi('ui/simulation.ui', self)
         self.setWindowTitle(experiment_name)
+        self.label_title.setText(self.experiment_name)
         self.button_start.clicked.connect(self.on_push_button_start_clicked)
         self.slider_asset.sliderPressed.connect(self.slider_pressed)
         self.slider_asset.mouseReleaseEvent = self.on_mouse_released
