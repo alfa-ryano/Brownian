@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>welcome_form</class>
- <widget class="QMainWindow" name="welcome_form">
+ <class>intermediary_form</class>
+ <widget class="QMainWindow" name="intermediary_form">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,20 +11,23 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Market Asset Simulation - Welcome</string>
+   <string/>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0,1">
+     <layout class="QVBoxLayout" name="verticalLayout_2" stretch="2,0,1">
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0">
+       <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0">
         <item>
          <widget class="QLabel" name="label_3">
           <property name="text">
            <string/>
           </property>
          </widget>
+        </item>
+        <item>
+         <widget class="QTextEdit" name="text_edit_instruction"/>
         </item>
        </layout>
       </item>

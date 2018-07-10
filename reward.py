@@ -36,8 +36,8 @@ class RewardForm(QtGui.QMainWindow):
             self.table_results.setItem(row_position, 2, QtGui.QTableWidgetItem(str(result[2])))
             self.table_results.setItem(row_position, 3, QtGui.QTableWidgetItem(str(result[3])))
             self.table_results.setItem(row_position, 4, QtGui.QTableWidgetItem(str(result[4])))
-            self.table_results.setItem(row_position, 5, QtGui.QTableWidgetItem(str(result[5])))
-            self.table_results.setItem(row_position, 6, QtGui.QTableWidgetItem(str(result[6])))
+            # self.table_results.setItem(row_position, 5, QtGui.QTableWidgetItem(str(result[5])))
+            # self.table_results.setItem(row_position, 6, QtGui.QTableWidgetItem(str(result[6])))
 
         self.table_results.horizontalHeader().setResizeMode(QHeaderView.ResizeToContents)
 

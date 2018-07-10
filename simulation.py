@@ -10,7 +10,6 @@ import socket
 from math import ceil
 from customutil import CountDownTimer
 
-
 COUNTDOWN_COUNT = 1
 
 
@@ -57,7 +56,7 @@ class ResultDialog(QtGui.QDialog):
 
 
 class InstructionDialog(QtGui.QDialog):
-    def __init__(self, main_form, dialog_file, experiment_name):
+    def __init__(self, main_form, text, experiment_name):
         super(InstructionDialog, self).__init__()
 
         uic.loadUi('ui/instruction.ui', self)
@@ -66,11 +65,12 @@ class InstructionDialog(QtGui.QDialog):
         self.label_title.setText(experiment_name)
         self.button_ok.clicked.connect(self.on_button_ok_clicked)
 
-        f = QFile(dialog_file)
-        f.open(QFile.ReadOnly | QFile.Text)
-        input_stream = QTextStream(f)
-        self.text_edit_instruction.setHtml(input_stream.readAll())
-        f.close()
+        # f = QFile(dialog_file)
+        # f.open(QFile.ReadOnly | QFile.Text)
+        # input_stream = QTextStream(f)
+        # self.text_edit_instruction.setHtml(input_stream.readAll())
+        # f.close()
+        self.text_edit_instruction.setHtml(text)
 
         self.counter = COUNTDOWN_COUNT
         self.countDownTimer = CountDownTimer(10, 0, 1, self.countdown)
@@ -94,7 +94,7 @@ class InstructionDialog(QtGui.QDialog):
 
 
 class InputAssetDialog(QtGui.QDialog):
-    def __init__(self, main_form, dialog_file, experiment_name):
+    def __init__(self, main_form, text, experiment_name):
         super(InputAssetDialog, self).__init__()
 
         uic.loadUi('ui/dialog.ui', self)
@@ -103,11 +103,7 @@ class InputAssetDialog(QtGui.QDialog):
         self.label_title.setText(experiment_name)
         self.button_ok.clicked.connect(self.on_button_ok_clicked)
 
-        f = QFile(dialog_file)
-        f.open(QFile.ReadOnly | QFile.Text)
-        input_stream = QTextStream(f)
-        self.text_edit_instruction.setHtml(input_stream.readAll())
-        f.close()
+        self.text_edit_instruction.setHtml(text)
 
         self.counter = COUNTDOWN_COUNT
         self.countDownTimer = CountDownTimer(10, 0, 1, self.countdown)
@@ -154,15 +150,29 @@ class SimulationForm(QtGui.QMainWindow):
         self.period = param_period
         self.number_of_frames = int(self.period / self.INTERVAL_TIME) + 1
 
+        # for initialisation the values here are given
+        self.initial_portfolio_value = float(param_portfolio)
+        self.portfolio_value = self.initial_portfolio_value
+        self.portfolio_percentage = self.portfolio_value / self.portfolio_value * 100.0
+        self.unit_price = float(random.randint(int(self.initial_portfolio_value * 5.0 / 100.0),
+                                               int(self.initial_portfolio_value * 25.0 / 100.0)))
+
         # main instruction
-        self.instruction_dialog = InstructionDialog(self, param_main_instruction_file, self.experiment_name)
+        text = self.load_instruction(param_main_instruction_file,
+                              param_portfolio, param_interest, self.unit_price, param_benchmark_asset, param_fix_comp,
+                              param_add_comp)
+        self.instruction_dialog = InstructionDialog(self, text, self.experiment_name)
         self.instruction_dialog.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
         self.instruction_dialog.setWindowState(QtCore.Qt.WindowMaximized)
         self.instruction_dialog.exec_()
         self.instruction_dialog.close()
 
         # set asset dialog
-        self.input_asset_dialog = InputAssetDialog(self, param_dialog_instruction_file, self.experiment_name)
+        text = self.load_instruction(param_dialog_instruction_file,
+                                     param_portfolio, param_interest, self.unit_price, param_benchmark_asset,
+                                     param_fix_comp,
+                                     param_add_comp)
+        self.input_asset_dialog = InputAssetDialog(self, text, self.experiment_name)
         self.input_asset_dialog.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
         self.input_asset_dialog.setWindowState(QtCore.Qt.WindowMaximized)
         self.input_asset_dialog.exec_()
@@ -219,18 +229,18 @@ class SimulationForm(QtGui.QMainWindow):
         self.slider_asset.sliderPressed.connect(self.slider_pressed)
         self.slider_asset.mouseReleaseEvent = self.on_mouse_released
 
-        f = QFile(param_simulation_instruction_file)
-        f.open(QFile.ReadOnly | QFile.Text)
-        input_stream = QTextStream(f)
-        self.text_edit_instruction.setHtml(input_stream.readAll())
-        f.close()
+        # f = QFile(param_simulation_instruction_file)
+        # f.open(QFile.ReadOnly | QFile.Text)
+        # input_stream = QTextStream(f)
+        # self.text_edit_instruction.setHtml(input_stream.readAll())
+        # f.close()
+        text = self.load_instruction(param_simulation_instruction_file,
+                                     param_portfolio, param_interest, self.unit_price, param_benchmark_asset,
+                                     param_fix_comp,
+                                     param_add_comp)
+        self.text_edit_instruction.setHtml(text)
 
         # for initialisation the values here are given
-        self.initial_portfolio_value = float(param_portfolio)
-        self.portfolio_value = self.initial_portfolio_value
-        self.portfolio_percentage = self.portfolio_value / self.portfolio_value * 100.0
-        self.unit_price = float(random.randint(int(self.initial_portfolio_value * 5.0 / 100.0),
-                                               int(self.initial_portfolio_value * 25.0 / 100.0)))
         self.asset_percentage = self.initial_asset_percentage
         self.unit_count = self.asset_percentage * self.portfolio_value / (100.0 * self.unit_price)
         self.asset_value = self.unit_price * self.unit_count
@@ -241,7 +251,7 @@ class SimulationForm(QtGui.QMainWindow):
         self.benchmark_portfolio_value = self.initial_portfolio_value
         self.benchmark_asset_percentage = param_benchmark_asset
         self.benchmark_unit_count = self.benchmark_asset_percentage * self.benchmark_portfolio_value / (
-            100.0 * self.unit_price)
+                100.0 * self.unit_price)
         self.benchmark_asset_value = self.unit_price * self.benchmark_unit_count
         self.benchmark_cash_value = self.benchmark_portfolio_value - self.benchmark_asset_value
         self.benchmark_portfolio_percentage = self.benchmark_portfolio_value / self.benchmark_portfolio_value * 100.0
@@ -482,11 +492,11 @@ class SimulationForm(QtGui.QMainWindow):
             self.refresh_delta_plot()
 
         if self.benchmark_portfolio_value > self.portfolio_y_upper * 90.0 / 100.0 or \
-                        self.benchmark_portfolio_value > self.portfolio_y_upper:
+                self.benchmark_portfolio_value > self.portfolio_y_upper:
             self.portfolio_y_upper += (self.portfolio_y_upper + abs(self.portfolio_y_lower)) * 10 / 100.0
             self.refresh_delta_plot()
         if self.benchmark_portfolio_value < self.portfolio_y_lower * 10.0 / 100.0 or \
-                        self.benchmark_portfolio_value < self.portfolio_y_lower:
+                self.benchmark_portfolio_value < self.portfolio_y_lower:
             self.portfolio_y_lower -= (self.portfolio_y_upper + abs(self.portfolio_y_lower)) * 10 / 100.0
             self.refresh_delta_plot()
 
@@ -591,7 +601,7 @@ class SimulationForm(QtGui.QMainWindow):
                                                                     blit=False, repeat=False)
         self.canvas_delta.draw()
         self.canvas_delta.show()
-    
+
     # saving only the actions made
     def save_user_actions(self):
         data = ["second,price,portfolio,unit,asset_v,asset_p,cash_v,cash_p,"
@@ -618,13 +628,14 @@ class SimulationForm(QtGui.QMainWindow):
             data.append(row_string)
 
         folder = "decision"
-        filename = "decision_subject " + str(self.main_program.user_id) + "-" + str(self.windowTitle()) + "-" + socket.gethostname().replace("-", "_") + ".csv"
+        filename = "decision_subject " + str(self.main_program.user_id) + "-" + str(
+            self.windowTitle()) + "-" + socket.gethostname().replace("-", "_") + ".csv"
         filename = filename.replace(" ", "_").lower()
         path = folder + os.sep + filename
         f = open(path, 'w')
         f.write("\n".join(data))
         f.close()
-        
+
     # saving all data    
     def save_data(self):
         data = ["second,price,portfolio,unit,asset_v,asset_p,cash_v,cash_p,"
@@ -676,7 +687,8 @@ class SimulationForm(QtGui.QMainWindow):
             data.append(row_string)
 
         folder = "result"
-        filename = "result_subject-" + str(self.main_program.user_id) + "-" + str(self.windowTitle()) + "-" + socket.gethostname().replace("-", "_") + ".csv"
+        filename = "result_subject-" + str(self.main_program.user_id) + "-" + str(
+            self.windowTitle()) + "-" + socket.gethostname().replace("-", "_") + ".csv"
         filename = filename.replace(" ", "_").lower()
         path = folder + os.sep + filename
         f = open(path, 'w')
@@ -714,3 +726,17 @@ class SimulationForm(QtGui.QMainWindow):
         self.user_data_benchmark_asset_percentage.append(self.benchmark_asset_value)
         self.user_data_benchmark_cash_value.append(self.benchmark_cash_value)
         self.user_data_benchmark_cash_percentage.append(self.benchmark_cash_percentage)
+
+    def load_instruction(self, filename,
+                         param_portfolio, param_interest, unit_price, param_benchmark_asset, param_fix_comp,
+                         param_add_comp):
+        file = open(filename, 'r')
+        text = file.read()
+        text = text.replace("[portfolio]", str(param_portfolio))
+        text = text.replace("[interest]", str(param_interest))
+        text = text.replace("[price]", str(unit_price))
+        text = text.replace("[b_asset]", str(param_benchmark_asset))
+        text = text.replace("[1 - b_asset]", str(100 - param_benchmark_asset))
+        text = text.replace("[fixed_comp]", str(param_fix_comp))
+        text = text.replace("[add_comp]", str(param_add_comp))
+        return text

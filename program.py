@@ -31,6 +31,7 @@ class MainProgram:
 
     INDEX_GENERAL_INSTRUCTION_FILENAME = 1;
     INDEX_INTERMEDIARY_FORM_MESSAGE = 1;
+    INDEX_INTERMEDIARY_FORM_FILENAME = 2;
 
     NUMBER_OF_PRACTICES = 2
 
@@ -46,17 +47,12 @@ class MainProgram:
         self.form_confs.append([GeneralInstructionForm.__name__, "instruction/general_01.html", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"])
         self.form_confs.append([GeneralInstructionForm.__name__, "instruction/general_02.html", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"])
         self.form_confs.append([GeneralInstructionForm.__name__, "instruction/general_03.html", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"])
-        self.form_confs.append([IntermediaryForm.__name__, "Start Practice!", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"])
+        self.form_confs.append([IntermediaryForm.__name__, "Start Practice!", "instruction/start_practice.html", "3", "4", "5", "6", "7", "8", "9", "10", "11"])
 
         with open("configuration/simulation_configuration.csv", "r") as f:
             reader = csv.reader(f, delimiter=",")
             next(reader, None)  # skip header
             for i, line in enumerate(reader):
-
-                if i + 1 == self.NUMBER_OF_PRACTICES:
-                    self.form_confs.append(
-                        [IntermediaryForm.__name__, "Start Simulation!", "2", "3", "4", "5", "6", "7", "8", "9", "10",
-                         "11"])
 
                 configuration = [None] * 13
                 configuration[self.INDEX_FORM_TYPE] = SimulationForm.__name__
@@ -74,6 +70,11 @@ class MainProgram:
                 configuration[self.INDEX_MAIN_INSTRUCTION] = "instruction/" + str(line[11]).strip()
                 self.form_confs.append(configuration)
 
+                if (i + 1) == self.NUMBER_OF_PRACTICES:
+                    self.form_confs.append(
+                        [IntermediaryForm.__name__, "Start Simulation!", "instruction/start_simulation.html", "3", "4", "5", "6", "7", "8", "9", "10",
+                         "11"])
+
         self.form_confs.append([RewardForm.__name__, "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"])
 
         self.current_form_index = 0
@@ -90,7 +91,8 @@ class MainProgram:
             self.current_form = GeneralInstructionForm(self, filename)
         elif form_conf[self.INDEX_FORM_TYPE] == IntermediaryForm.__name__:
             message = form_conf[self.INDEX_INTERMEDIARY_FORM_MESSAGE]
-            self.current_form = IntermediaryForm(self, message)
+            filename = form_conf[self.INDEX_INTERMEDIARY_FORM_FILENAME]
+            self.current_form = IntermediaryForm(self, message, filename)
         elif form_conf[self.INDEX_FORM_TYPE] == SimulationForm.__name__:
             self.current_form = SimulationForm(self, form_conf[self.INDEX_FORM_TITLE],
                                                form_conf[self.INDEX_SIMULATION_INSTRUCTION],
@@ -127,7 +129,8 @@ class MainProgram:
             self.current_form = GeneralInstructionForm(self, filename)
         elif form_conf[self.INDEX_FORM_TYPE] == IntermediaryForm.__name__:
             message = form_conf[self.INDEX_INTERMEDIARY_FORM_MESSAGE]
-            self.current_form = IntermediaryForm(self, message)
+            filename = form_conf[self.INDEX_INTERMEDIARY_FORM_FILENAME]
+            self.current_form = IntermediaryForm(self, message, filename)
         elif form_conf[self.INDEX_FORM_TYPE] == SimulationForm.__name__:
             self.current_form = SimulationForm(self, form_conf[self.INDEX_FORM_TITLE],
                                                form_conf[self.INDEX_SIMULATION_INSTRUCTION],
