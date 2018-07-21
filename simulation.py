@@ -162,7 +162,9 @@ class SimulationForm(QtGui.QMainWindow):
         text = self.load_instruction("instruction/example.html",
                                      param_portfolio, param_interest, self.unit_price, param_benchmark_asset,
                                      param_fix_comp, param_add_comp, param_period)
-        self.brownian_example_dialog = BrownianExampleDialog(self, text, self.experiment_name)
+        self.brownian_example_dialog = BrownianExampleDialog(self, text, self.experiment_name, self.mu, self.sigma,
+                                                             self.unit_price, self.period,
+                                                             self.INTERVAL_TIME, self.X_AXIS_WIDTH)
         self.brownian_example_dialog.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
         self.brownian_example_dialog.setWindowState(QtCore.Qt.WindowMaximized)
         self.brownian_example_dialog.exec_()

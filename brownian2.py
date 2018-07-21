@@ -10,10 +10,9 @@ COUNTDOWN_COUNT = 1
 
 
 class BrownianExampleDialog(QtGui.QDialog):
-    INTERVAL_TIME = 0.1
-    X_AXIS_WIDTH = 50
 
-    def __init__(self, main_form, text, experiment_name):
+    def __init__(self, main_form, text, experiment_name, param_mu, param_sigma, param_unit_price, param_period,
+                 param_interval_time, x_axis_width):
         super(BrownianExampleDialog, self).__init__()
 
         uic.loadUi('ui/brownian2.ui', self)
@@ -25,15 +24,16 @@ class BrownianExampleDialog(QtGui.QDialog):
         self.text_edit_instruction.setHtml(text)
 
         # initialise graphics
-        self.unit_price = 100
-        self.period = 60
-        self.mu = 0.01
-        self.sigma = 0.1
-        self.number_of_frames = int(self.period / 0.1) + 1
+        self.unit_price = param_unit_price
+        self.period = param_period
+        self.mu = param_mu
+        self.sigma = param_sigma
+        self.interval_time = param_interval_time
+        self.number_of_frames = int(self.period / self.interval_time) + 1
         
         self.price_x_lower = 0
         self.price_y_lower = 0
-        self.price_x_upper = 60
+        self.price_x_upper = x_axis_width
         # self.price_y_upper = self.unit_price * 2
 
         layouts = [self.layout_graph_1, self.layout_graph_2, self.layout_graph_3, 
@@ -68,7 +68,7 @@ class BrownianExampleDialog(QtGui.QDialog):
         mu = self.mu
         sigma = self.sigma
         S0 = self.unit_price
-        dt = self.INTERVAL_TIME
+        dt = self.interval_time
         N = self.number_of_frames
         t = np.linspace(0, T, N)
         W = np.random.standard_normal(size=N)
