@@ -38,3 +38,6 @@ class CountDownTimer(EventTimer):
             return
         super(CountDownTimer, self).run()
 
+
+def format_decimal(value):
+    return "{0:.2f}".format(value)

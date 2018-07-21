@@ -8,7 +8,8 @@ import random
 import os
 import socket
 from math import ceil
-from customutil import CountDownTimer
+from customutil import CountDownTimer, format_decimal
+from brownian2 import BrownianExampleDialog
 
 COUNTDOWN_COUNT = 1
 
@@ -50,9 +51,9 @@ class ResultDialog(QtGui.QDialog):
     def set_result(self, portfolio_value, benchmark_value):
         portfolio_value = round(portfolio_value, 10)
         benchmark_value = round(benchmark_value, 10)
-        self.edit_portfolio_value.setText(str(portfolio_value))
-        self.edit_benchmark_value.setText(str(benchmark_value))
-        self.edit_gain_value.setText(str(portfolio_value - benchmark_value))
+        self.edit_portfolio_value.setText(format_decimal(portfolio_value))
+        self.edit_benchmark_value.setText(format_decimal(benchmark_value))
+        self.edit_gain_value.setText(format_decimal(portfolio_value - benchmark_value))
 
 
 class InstructionDialog(QtGui.QDialog):
@@ -157,10 +158,20 @@ class SimulationForm(QtGui.QMainWindow):
         self.unit_price = float(random.randint(int(self.initial_portfolio_value * 5.0 / 100.0),
                                                int(self.initial_portfolio_value * 25.0 / 100.0)))
 
+        # brownian example dialog
+        text = self.load_instruction("instruction/example.html",
+                                     param_portfolio, param_interest, self.unit_price, param_benchmark_asset,
+                                     param_fix_comp, param_add_comp, param_period)
+        self.brownian_example_dialog = BrownianExampleDialog(self, text, self.experiment_name)
+        self.brownian_example_dialog.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
+        self.brownian_example_dialog.setWindowState(QtCore.Qt.WindowMaximized)
+        self.brownian_example_dialog.exec_()
+        self.brownian_example_dialog.close()
+
         # main instruction
         text = self.load_instruction(param_main_instruction_file,
-                              param_portfolio, param_interest, self.unit_price, param_benchmark_asset, param_fix_comp,
-                              param_add_comp)
+                                     param_portfolio, param_interest, self.unit_price, param_benchmark_asset,
+                                     param_fix_comp, param_add_comp, param_period)
         self.instruction_dialog = InstructionDialog(self, text, self.experiment_name)
         self.instruction_dialog.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
         self.instruction_dialog.setWindowState(QtCore.Qt.WindowMaximized)
@@ -170,8 +181,7 @@ class SimulationForm(QtGui.QMainWindow):
         # set asset dialog
         text = self.load_instruction(param_dialog_instruction_file,
                                      param_portfolio, param_interest, self.unit_price, param_benchmark_asset,
-                                     param_fix_comp,
-                                     param_add_comp)
+                                     param_fix_comp, param_add_comp, param_period)
         self.input_asset_dialog = InputAssetDialog(self, text, self.experiment_name)
         self.input_asset_dialog.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
         self.input_asset_dialog.setWindowState(QtCore.Qt.WindowMaximized)
@@ -237,7 +247,7 @@ class SimulationForm(QtGui.QMainWindow):
         text = self.load_instruction(param_simulation_instruction_file,
                                      param_portfolio, param_interest, self.unit_price, param_benchmark_asset,
                                      param_fix_comp,
-                                     param_add_comp)
+                                     param_add_comp, param_period)
         self.text_edit_instruction.setHtml(text)
 
         # for initialisation the values here are given
@@ -425,15 +435,15 @@ class SimulationForm(QtGui.QMainWindow):
         self.calculate_actual_values()
 
     def update_value_displays(self):
-        self.edit_price_unit.setText(str(self.unit_price))
-        self.edit_unit_count.setText(str(self.unit_count))
-        self.edit_portfolio_value.setText(str(self.portfolio_value))
-        self.edit_asset_value.setText(str(self.asset_value))
-        self.edit_cash_value.setText(str(self.cash_value))
-        self.edit_asset_percentage.setText(str(self.asset_percentage))
-        self.edit_cash_percentage.setText(str(self.cash_percentage))
+        self.edit_price_unit.setText(format_decimal(self.unit_price))
+        self.edit_unit_count.setText(format_decimal(self.unit_count))
+        self.edit_portfolio_value.setText(format_decimal(self.portfolio_value))
+        self.edit_asset_value.setText(format_decimal(self.asset_value))
+        self.edit_cash_value.setText(format_decimal(self.cash_value))
+        self.edit_asset_percentage.setText(format_decimal(self.asset_percentage))
+        self.edit_cash_percentage.setText(format_decimal(self.cash_percentage))
 
-        self.edit_benchmark_value.setText(str(self.benchmark_portfolio_value))
+        self.edit_benchmark_value.setText(format_decimal(self.benchmark_portfolio_value))
 
     def update_line_price(self, num, data, line):
         # create running data for price graphic by filtering the data from index 0 to num.
@@ -729,14 +739,16 @@ class SimulationForm(QtGui.QMainWindow):
 
     def load_instruction(self, filename,
                          param_portfolio, param_interest, unit_price, param_benchmark_asset, param_fix_comp,
-                         param_add_comp):
+                         param_add_comp, param_period):
         file = open(filename, 'r')
         text = file.read()
-        text = text.replace("[portfolio]", str(param_portfolio))
-        text = text.replace("[interest]", str(param_interest))
-        text = text.replace("[price]", str(unit_price))
-        text = text.replace("[b_asset]", str(param_benchmark_asset))
-        text = text.replace("[1 - b_asset]", str(100 - param_benchmark_asset))
-        text = text.replace("[fixed_comp]", str(param_fix_comp))
-        text = text.replace("[add_comp]", str(param_add_comp))
+        text = text.replace("[portfolio]", format_decimal(param_portfolio))
+        text = text.replace("[interest]", format_decimal(param_interest))
+        text = text.replace("[price]", format_decimal(unit_price))
+        text = text.replace("[b_asset]", format_decimal(param_benchmark_asset))
+        text = text.replace("[1 - b_asset]", format_decimal(100 - param_benchmark_asset))
+        text = text.replace("[fix_comp]", format_decimal(param_fix_comp))
+        text = text.replace("[add_comp]", format_decimal(param_add_comp))
+        text = text.replace("[period/60]", format_decimal(param_period / 60))
+
         return text

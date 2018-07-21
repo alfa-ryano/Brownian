@@ -1,6 +1,7 @@
 from PyQt4 import QtGui, uic
 from PyQt4.QtGui import QMessageBox, QHeaderView, QTableWidget, QColor, QPalette
 from PyQt4.QtCore import QFile, QTextStream, QSize
+from customutil import format_decimal
 import os
 
 
@@ -31,13 +32,13 @@ class RewardForm(QtGui.QMainWindow):
 
             row_position = self.table_results.rowCount()
             self.table_results.insertRow(row_position)
-            self.table_results.setItem(row_position, 0, QtGui.QTableWidgetItem(str(result[0])))
-            self.table_results.setItem(row_position, 1, QtGui.QTableWidgetItem(str(result[1])))
-            self.table_results.setItem(row_position, 2, QtGui.QTableWidgetItem(str(result[2])))
-            self.table_results.setItem(row_position, 3, QtGui.QTableWidgetItem(str(result[3])))
-            self.table_results.setItem(row_position, 4, QtGui.QTableWidgetItem(str(result[4])))
-            # self.table_results.setItem(row_position, 5, QtGui.QTableWidgetItem(str(result[5])))
-            # self.table_results.setItem(row_position, 6, QtGui.QTableWidgetItem(str(result[6])))
+            self.table_results.setItem(row_position, 0, QtGui.QTableWidgetItem(result[0]))
+            self.table_results.setItem(row_position, 1, QtGui.QTableWidgetItem(format_decimal(result[1])))
+            self.table_results.setItem(row_position, 2, QtGui.QTableWidgetItem(format_decimal(result[2])))
+            self.table_results.setItem(row_position, 3, QtGui.QTableWidgetItem(format_decimal(result[3])))
+            self.table_results.setItem(row_position, 4, QtGui.QTableWidgetItem(format_decimal(result[4])))
+            # self.table_results.setItem(row_position, 5, QtGui.QTableWidgetItem(format_decimal(result[5])))
+            # self.table_results.setItem(row_position, 6, QtGui.QTableWidgetItem(format_decimal(result[6])))
 
         self.table_results.horizontalHeader().setResizeMode(QHeaderView.ResizeToContents)
 
@@ -82,3 +83,6 @@ class RewardForm(QtGui.QMainWindow):
         return_value = msg.exec_()
         if return_value == msg.Yes:
             self.main_program.show_next_form()
+
+    def format_decimal(self, value):
+        return "{0:.2f}".format(value)
