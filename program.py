@@ -8,6 +8,7 @@ from reward import RewardForm
 from welcome import WelcomeForm
 from general import GeneralInstructionForm
 import csv
+from brownian1 import BrownianSimulationForm
 
 
 # import ConfigParser
@@ -44,10 +45,21 @@ class MainProgram:
         self.form_confs = []
         self.form_confs.append([RegisterForm.__name__, "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"])
         self.form_confs.append([WelcomeForm.__name__, "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"])
-        self.form_confs.append([GeneralInstructionForm.__name__, "instruction/general_01.html", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"])
-        self.form_confs.append([GeneralInstructionForm.__name__, "instruction/general_02.html", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"])
-        self.form_confs.append([GeneralInstructionForm.__name__, "instruction/general_03.html", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"])
-        self.form_confs.append([IntermediaryForm.__name__, "Start Practice!", "instruction/start_practice.html", "3", "4", "5", "6", "7", "8", "9", "10", "11"])
+        self.form_confs.append(
+            [GeneralInstructionForm.__name__, "instruction/general_01.html", "2", "3", "4", "5", "6", "7", "8", "9",
+             "10", "11"])
+        self.form_confs.append(
+            [GeneralInstructionForm.__name__, "instruction/general_02.html", "2", "3", "4", "5", "6", "7", "8", "9",
+             "10", "11"])
+        self.form_confs.append(
+            [GeneralInstructionForm.__name__, "instruction/general_03.html", "2", "3", "4", "5", "6", "7", "8", "9",
+             "10", "11"])
+        self.form_confs.append(
+            [BrownianSimulationForm.__name__, "instruction/simulation.html", "2", "3", "4", "5", "6", "7", "8", "9",
+             "10", "11"])
+        self.form_confs.append(
+            [IntermediaryForm.__name__, "Start Practice!", "instruction/start_practice.html", "3", "4", "5", "6", "7",
+             "8", "9", "10", "11"])
 
         with open("configuration/simulation_configuration.csv", "r") as f:
             reader = csv.reader(f, delimiter=",")
@@ -58,7 +70,7 @@ class MainProgram:
                 configuration[self.INDEX_FORM_TYPE] = SimulationForm.__name__
                 configuration[self.INDEX_FORM_TITLE] = str(line[0]).strip()
                 configuration[self.INDEX_PORTFOLIO] = float(line[1])
-                configuration[self.INDEX_PERIOD]= float(line[2])
+                configuration[self.INDEX_PERIOD] = float(line[2])
                 configuration[self.INDEX_FIX_COMPENSATION] = float(line[3])
                 configuration[self.INDEX_ADD_COMPENSATION] = float(line[4])
                 configuration[self.INDEX_BENCHMARK_ASSET] = float(line[5])
@@ -72,7 +84,8 @@ class MainProgram:
 
                 if (i + 1) == self.NUMBER_OF_PRACTICES:
                     self.form_confs.append(
-                        [IntermediaryForm.__name__, "Start Simulation!", "instruction/start_simulation.html", "3", "4", "5", "6", "7", "8", "9", "10",
+                        [IntermediaryForm.__name__, "Start Simulation!", "instruction/start_simulation.html", "3", "4",
+                         "5", "6", "7", "8", "9", "10",
                          "11"])
 
         self.form_confs.append([RewardForm.__name__, "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"])
@@ -86,6 +99,9 @@ class MainProgram:
             self.current_form = RegisterForm(self)
         elif form_conf[self.INDEX_FORM_TYPE] == WelcomeForm.__name__:
             self.current_form = WelcomeForm(self)
+        elif form_conf[self.INDEX_FORM_TYPE] == BrownianSimulationForm.__name__:
+            filename = form_conf[self.INDEX_GENERAL_INSTRUCTION_FILENAME]
+            self.current_form = BrownianSimulationForm(self, filename)
         elif form_conf[self.INDEX_FORM_TYPE] == GeneralInstructionForm.__name__:
             filename = form_conf[self.INDEX_GENERAL_INSTRUCTION_FILENAME]
             self.current_form = GeneralInstructionForm(self, filename)
@@ -124,6 +140,9 @@ class MainProgram:
             self.current_form = RegisterForm(self)
         elif form_conf[self.INDEX_FORM_TYPE] == WelcomeForm.__name__:
             self.current_form = WelcomeForm(self)
+        elif form_conf[self.INDEX_FORM_TYPE] == BrownianSimulationForm.__name__:
+            filename = form_conf[self.INDEX_GENERAL_INSTRUCTION_FILENAME]
+            self.current_form = BrownianSimulationForm(self, filename)
         elif form_conf[self.INDEX_FORM_TYPE] == GeneralInstructionForm.__name__:
             filename = form_conf[self.INDEX_GENERAL_INSTRUCTION_FILENAME]
             self.current_form = GeneralInstructionForm(self, filename)
@@ -153,6 +172,7 @@ class MainProgram:
 
     def terminate(self):
         self.app.quit()
+
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
