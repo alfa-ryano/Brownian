@@ -159,7 +159,7 @@ class SimulationForm(QtGui.QMainWindow):
         # main instruction
         text = self.load_instruction(param_main_instruction_file,
                                      param_portfolio, param_interest, self.unit_price, param_benchmark_asset,
-                                     param_fix_comp, param_add_comp, param_period)
+                                     param_fix_comp, param_add_comp, param_period, param_mu, param_sigma)
         self.instruction_dialog = InstructionDialog(self, text, self.experiment_name)
         self.instruction_dialog.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
         self.instruction_dialog.setWindowState(QtCore.Qt.WindowMaximized)
@@ -169,7 +169,7 @@ class SimulationForm(QtGui.QMainWindow):
         # brownian example dialog
         text = self.load_instruction("instruction/example.html",
                                      param_portfolio, param_interest, self.unit_price, param_benchmark_asset,
-                                     param_fix_comp, param_add_comp, param_period)
+                                     param_fix_comp, param_add_comp, param_period, param_mu, param_sigma)
         self.brownian_example_dialog = BrownianExampleDialog(self, text, self.experiment_name, self.mu, self.sigma,
                                                              self.unit_price, self.period,
                                                              self.INTERVAL_TIME, self.X_AXIS_WIDTH)
@@ -181,7 +181,7 @@ class SimulationForm(QtGui.QMainWindow):
         # set asset dialog
         text = self.load_instruction(param_dialog_instruction_file,
                                      param_portfolio, param_interest, self.unit_price, param_benchmark_asset,
-                                     param_fix_comp, param_add_comp, param_period)
+                                     param_fix_comp, param_add_comp, param_period, param_mu, param_sigma)
         self.input_asset_dialog = InputAssetDialog(self, text, self.experiment_name)
         self.input_asset_dialog.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
         self.input_asset_dialog.setWindowState(QtCore.Qt.WindowMaximized)
@@ -247,7 +247,7 @@ class SimulationForm(QtGui.QMainWindow):
         text = self.load_instruction(param_simulation_instruction_file,
                                      param_portfolio, param_interest, self.unit_price, param_benchmark_asset,
                                      param_fix_comp,
-                                     param_add_comp, param_period)
+                                     param_add_comp, param_period, param_mu, param_sigma)
         self.text_edit_instruction.setHtml(text)
 
         # for initialisation the values here are given
@@ -739,7 +739,7 @@ class SimulationForm(QtGui.QMainWindow):
 
     def load_instruction(self, filename,
                          param_portfolio, param_interest, unit_price, param_benchmark_asset, param_fix_comp,
-                         param_add_comp, param_period):
+                         param_add_comp, param_period, param_mean, param_sigma):
         file = open(filename, 'r')
         text = file.read()
         text = text.replace("[portfolio]", format_decimal(param_portfolio))
@@ -750,5 +750,7 @@ class SimulationForm(QtGui.QMainWindow):
         text = text.replace("[fixed_comp]", format_decimal(param_fix_comp))
         text = text.replace("[add_comp]", format_decimal(param_add_comp))
         text = text.replace("[period/60]", format_decimal(param_period / 60))
+        text = text.replace("[mean]", format_decimal(param_mean))
+        text = text.replace("[sigma]", format_decimal(param_sigma))
 
         return text
