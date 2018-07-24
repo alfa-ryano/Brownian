@@ -1,5 +1,7 @@
 import threading
 
+COUNTDOWN_COUNT = 1
+
 
 class EventTimer(object):
     def __init__(self, interval, function):

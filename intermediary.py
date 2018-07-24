@@ -1,8 +1,6 @@
 from PyQt4 import QtGui, uic
 from PyQt4.QtCore import QFile, QTextStream
-from customutil import CountDownTimer
-
-COUNTDOWN_COUNT = 1
+from customutil import CountDownTimer, COUNTDOWN_COUNT
 
 
 class IntermediaryForm(QtGui.QMainWindow):

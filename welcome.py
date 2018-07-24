@@ -2,8 +2,6 @@ from PyQt4 import QtGui, uic
 from PyQt4.QtGui import QMessageBox
 import ConfigParser
 
-COUNTDOWN_COUNT = 1
-
 
 class WelcomeForm(QtGui.QMainWindow):
 

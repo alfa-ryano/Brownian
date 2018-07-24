@@ -8,10 +8,8 @@ import random
 import os
 import socket
 from math import ceil
-from customutil import CountDownTimer, format_decimal
+from customutil import CountDownTimer, format_decimal, COUNTDOWN_COUNT
 from brownian2 import BrownianExampleDialog
-
-COUNTDOWN_COUNT = 1
 
 
 class ResultDialog(QtGui.QDialog):
