@@ -156,6 +156,16 @@ class SimulationForm(QtGui.QMainWindow):
         self.unit_price = float(random.randint(int(self.initial_portfolio_value * 5.0 / 100.0),
                                                int(self.initial_portfolio_value * 25.0 / 100.0)))
 
+        # main instruction
+        text = self.load_instruction(param_main_instruction_file,
+                                     param_portfolio, param_interest, self.unit_price, param_benchmark_asset,
+                                     param_fix_comp, param_add_comp, param_period)
+        self.instruction_dialog = InstructionDialog(self, text, self.experiment_name)
+        self.instruction_dialog.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
+        self.instruction_dialog.setWindowState(QtCore.Qt.WindowMaximized)
+        self.instruction_dialog.exec_()
+        self.instruction_dialog.close()
+
         # brownian example dialog
         text = self.load_instruction("instruction/example.html",
                                      param_portfolio, param_interest, self.unit_price, param_benchmark_asset,
@@ -167,16 +177,6 @@ class SimulationForm(QtGui.QMainWindow):
         self.brownian_example_dialog.setWindowState(QtCore.Qt.WindowMaximized)
         self.brownian_example_dialog.exec_()
         self.brownian_example_dialog.close()
-
-        # main instruction
-        text = self.load_instruction(param_main_instruction_file,
-                                     param_portfolio, param_interest, self.unit_price, param_benchmark_asset,
-                                     param_fix_comp, param_add_comp, param_period)
-        self.instruction_dialog = InstructionDialog(self, text, self.experiment_name)
-        self.instruction_dialog.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
-        self.instruction_dialog.setWindowState(QtCore.Qt.WindowMaximized)
-        self.instruction_dialog.exec_()
-        self.instruction_dialog.close()
 
         # set asset dialog
         text = self.load_instruction(param_dialog_instruction_file,
