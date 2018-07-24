@@ -490,10 +490,10 @@ class SimulationForm(QtGui.QMainWindow):
 
         # update y-axis
         if self.unit_price > self.price_y_upper * 90.0 / 100.0 or self.unit_price > self.price_y_upper:
-            self.price_y_upper += (self.price_y_upper + abs(self.portfolio_y_lower)) * 10 / 100.0
+            self.price_y_upper += (self.price_y_upper + abs(self.price_y_lower)) * 10 / 100.0
             self.refresh_price_plot()
         if self.unit_price < self.price_y_lower * 10.0 / 100.0 or self.unit_price < self.price_y_lower:
-            self.price_y_lower -= (self.price_y_upper + abs(self.portfolio_y_lower)) * 10 / 100.0
+            self.price_y_lower -= (self.price_y_upper + abs(self.price_y_lower)) * 10 / 100.0
             self.refresh_price_plot()
 
         if self.portfolio_value > self.portfolio_y_upper * 90.0 / 100.0 or self.portfolio_value > self.portfolio_y_upper:
@@ -749,7 +749,7 @@ class SimulationForm(QtGui.QMainWindow):
         text = text.replace("[price]", format_decimal(unit_price))
         text = text.replace("[b_asset]", format_decimal(param_benchmark_asset))
         text = text.replace("[1 - b_asset]", format_decimal(100 - param_benchmark_asset))
-        text = text.replace("[fix_comp]", format_decimal(param_fix_comp))
+        text = text.replace("[fixed_comp]", format_decimal(param_fix_comp))
         text = text.replace("[add_comp]", format_decimal(param_add_comp))
         text = text.replace("[period/60]", format_decimal(param_period / 60))
 

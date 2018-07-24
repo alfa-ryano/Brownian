@@ -1,4 +1,13 @@
-name, portfolio, period, fix_comp, add_comp, b_asset, interest, dialog_file, simulation_file, mu, sigma, instruction
-Practice 01,100,51,10,0.5,10,0, dialog_01.html, simulation_01.html,0.01,0.1, instruction_01.html
-Practice 02,150,52,11,0.6,20,0, dialog_02.html, simulation_02.html,0.01,0.1, instruction_02.html
-Experiment 01,100,51,10,0.5,10,0, dialog_01.html, simulation_01.html,0.01,0.1, instruction_01.html
+name, portfolio, period, fix_comp, add_comp, b_asset, interest, dialog_file, simulation_file, mu, sigma,,,b_cash,minute
+Practice 01,100,60,10,0.5,10,0, dialog_01.html, simulation_01.html,0.01,0.1, instruction_01.html,,90,1
+Practice 02,150,60,11,0.6,20,0, dialog_02.html, simulation_02.html,0.01,0.1, instruction_02.html,,80,1
+Experiment 01,100,60,10,0.5,10,0, dialog_01.html, simulation_01.html,0.01,0.1, instruction_01.html,,90,0.85
+Experiment 02,150,60,11,0.6,20,0, dialog_02.html, simulation_02.html,0.01,0.1, instruction_02.html,,80,0.866666667
+Experiment 03,100,60,12,0.7,25,0, dialog_03.html, simulation_03.html,0.01,0.1, instruction_03.html,,75,0.883333333
+Experiment 04,100,60,13,0.6,25,0, dialog_04.html, simulation_04.html,0.01,0.1, instruction_04.html,,,
+Experiment 05,100,60,14,0.7,25,0, dialog_05.html, simulation_05.html,0.01,0.1, instruction_05.html,,,
+Experiment 06,100,60,15,0.6,25,0, dialog_06.html, simulation_06.html,0.01,0.1, instruction_06.html,,,
+Experiment 07,100,60,16,0.7,25,0, dialog_07.html, simulation_07.html,0.01,0.1, instruction_07.html,,,
+Experiment 08,100,60,17,0.6,25,0, dialog_08.html, simulation_08.html,0.01,0.1, instruction_08.html,,,
+Experiment 09,100,60,18,0.7,25,0, dialog_09.html, simulation_09.html,0.01,0.1, instruction_09.html,,,
+Experiment 10,100,60,19,0.6,25,0, dialog_10.html, simulation_10.html,0.01,0.1, instruction_10.html,,,
