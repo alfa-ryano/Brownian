@@ -149,6 +149,9 @@ class SimulationForm(QtGui.QMainWindow):
         self.period = param_period
         self.number_of_frames = int(self.period / self.INTERVAL_TIME) + 1
 
+        self.W1 = None;
+        self.W2 = None;
+
         # for initialisation the values here are given
         self.initial_portfolio_value = float(param_portfolio)
         self.portfolio_value = self.initial_portfolio_value
@@ -212,7 +215,6 @@ class SimulationForm(QtGui.QMainWindow):
         self.data_cash_percentage = []
 
         self.data_benchmark_unit_count = []
-        self.data_benchmark_asset_value = []
         self.data_benchmark_asset_percentage = []
         self.data_benchmark_cash_value = []
         self.data_benchmark_cash_percentage = []
@@ -572,7 +574,9 @@ class SimulationForm(QtGui.QMainWindow):
         N = self.number_of_frames
         t = np.linspace(0, T, N)
         W = np.random.standard_normal(size=N)
+        self.W1 = W
         W = np.cumsum(W) * np.sqrt(dt)  ### standard brownian motion ###
+        self.W2 = W
         X = (mu - 0.5 * sigma ** 2) * t + sigma * W
         S = S0 * np.exp(X)
         x = np.array([t, S])
@@ -615,7 +619,7 @@ class SimulationForm(QtGui.QMainWindow):
     # saving only the actions made
     def save_user_actions(self):
         data = ["second,price,portfolio,unit,asset_v,asset_p,cash_v,cash_p,"
-                "b_portfolio,b_unit,b_asset_v,b_asset_p,b_cash_v,b_cash_p"]
+                "b_portfolio,b_unit,b_asset_v,b_asset_p,b_cash_v,b_cash_p,w1,w2"]
 
         for t in range(0, len(self.user_data_frame)):
             row = [str(self.user_data_frame[t]),
@@ -631,7 +635,9 @@ class SimulationForm(QtGui.QMainWindow):
                    str(self.user_data_benchmark_asset_value[t]),
                    str(self.user_data_benchmark_asset_percentage[t]),
                    str(self.user_data_benchmark_cash_value[t]),
-                   str(self.user_data_benchmark_cash_percentage[t])
+                   str(self.user_data_benchmark_cash_percentage[t]),
+                   str(self.W1[t]),
+                   str(self.W2[t])
                    ]
 
             row_string = ",".join(row)
@@ -649,11 +655,12 @@ class SimulationForm(QtGui.QMainWindow):
     # saving all data    
     def save_data(self):
         data = ["second,price,portfolio,unit,asset_v,asset_p,cash_v,cash_p,"
-                "b_portfolio,b_unit,b_asset_v,b_asset_p,b_cash_v,b_cash_p"]
+                "b_portfolio,b_unit,b_asset_v,b_asset_p,b_cash_v,b_cash_p,w1,w2"]
 
         prices = self.data_price[1].tolist()
         portfolio_values = self.data_delta[1].tolist()
         benchmark_portfolio_values = self.data_benchmark[1].tolist()
+
 
         # append initial configuration
         row = [str(self.user_data_frame[0]),
@@ -669,7 +676,9 @@ class SimulationForm(QtGui.QMainWindow):
                str(self.user_data_benchmark_asset_value[0]),
                str(self.user_data_benchmark_asset_percentage[0]),
                str(self.user_data_benchmark_cash_value[0]),
-               str(self.user_data_benchmark_cash_percentage[0])
+               str(self.user_data_benchmark_cash_percentage[0]),
+               str(self.W1[0]),
+               str(self.W2[0])
                ]
 
         row_string = ",".join(row)
@@ -690,7 +699,9 @@ class SimulationForm(QtGui.QMainWindow):
                    str(self.data_benchmark_asset_value[t]),
                    str(self.data_benchmark_asset_percentage[t]),
                    str(self.data_benchmark_cash_value[t]),
-                   str(self.data_benchmark_cash_percentage[t])
+                   str(self.data_benchmark_cash_percentage[t]),
+                   str(self.W1[t]),
+                   str(self.W2[t]),
                    ]
 
             row_string = ",".join(row)
