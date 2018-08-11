@@ -215,6 +215,7 @@ class SimulationForm(QtGui.QMainWindow):
         self.data_cash_percentage = []
 
         self.data_benchmark_unit_count = []
+        self.data_benchmark_asset_value = []
         self.data_benchmark_asset_percentage = []
         self.data_benchmark_cash_value = []
         self.data_benchmark_cash_percentage = []
