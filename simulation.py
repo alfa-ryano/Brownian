@@ -556,7 +556,6 @@ class SimulationForm(QtGui.QMainWindow):
         if num >= self.number_of_frames - 1:
             # save data
             self.save_data()
-            self.save_user_actions()
 
             # add result to all results in main_program to be displayed on the last form
             gain_value = self.portfolio_value - self.benchmark_portfolio_value
@@ -721,7 +720,7 @@ class SimulationForm(QtGui.QMainWindow):
                    str(self.data_asset_percentage[t]),
                    str(self.data_cash_value[t]),
                    str(self.data_cash_percentage[t]),
-                   str(benchmark_portfolio_values[t]),
+                   str(self.data_benchmark_portfolio[t]),
                    str(self.data_benchmark_unit_count[t]),
                    str(self.data_benchmark_asset_value[t]),
                    str(self.data_benchmark_asset_percentage[t]),
