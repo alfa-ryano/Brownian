@@ -204,16 +204,20 @@ class SimulationForm(QtGui.QMainWindow):
         self.function_animation_delta = None
         self.function_animation_benchmark = None
 
-        self.data_price = np.array([[], []])
+        self.data_price_equation = np.array([[], []])
         self.data_delta = np.array([[], []])
         self.data_benchmark = np.array([[], []])
 
+        self.data_price = []
+        self.data_portfolio = []
         self.data_unit_count = []
         self.data_asset_value = []
         self.data_asset_percentage = []
         self.data_cash_value = []
         self.data_cash_percentage = []
 
+        self.data_benchmark_price = []
+        self.data_benchmark_portfolio = []
         self.data_benchmark_unit_count = []
         self.data_benchmark_asset_value = []
         self.data_benchmark_asset_percentage = []
@@ -336,7 +340,7 @@ class SimulationForm(QtGui.QMainWindow):
             self.function_animation_price.event_source.stop()
         self.canvas_price.figure.clear()
         self.figure_price = plot.figure(self.figure_price_id)
-        self.data_price = np.array([[], []])
+        self.data_price_equation = np.array([[], []])
         self.plot_price()
 
         if self.function_animation_delta is not None:
@@ -384,6 +388,16 @@ class SimulationForm(QtGui.QMainWindow):
         to_be_asset_value = self.asset_percentage * self.portfolio_value / 100.0
         to_be_unit_count = to_be_asset_value / self.unit_price
 
+        # record data
+        self.data_price.append(self.unit_price)
+        self.data_portfolio.append(self.portfolio_value)
+        self.data_unit_count.append(self.unit_count)
+        self.data_asset_value.append(self.asset_value)
+        self.data_asset_percentage.append(self.asset_percentage)
+        self.data_cash_value.append(self.cash_value)
+        self.data_cash_percentage.append(self.cash_percentage)
+
+        # calculate adjustment of unit count
         if to_be_unit_count < self.unit_count:
             delta_unit_count = self.unit_count - to_be_unit_count
             if delta_unit_count > self.unit_count:
@@ -412,6 +426,16 @@ class SimulationForm(QtGui.QMainWindow):
         to_be_benchmark_asset_value = self.benchmark_asset_percentage * self.benchmark_portfolio_value / 100.0
         to_be_benchmark_unit_count = to_be_benchmark_asset_value / self.unit_price
 
+        # record data
+        self.data_benchmark_price.append(self.unit_price)
+        self.data_benchmark_portfolio.append(self.benchmark_portfolio_value)
+        self.data_benchmark_unit_count.append(self.benchmark_unit_count)
+        self.data_benchmark_asset_value.append(self.benchmark_asset_value)
+        self.data_benchmark_asset_percentage.append(self.benchmark_asset_percentage)
+        self.data_benchmark_cash_value.append(self.benchmark_cash_value)
+        self.data_benchmark_cash_percentage.append(self.benchmark_cash_percentage)
+
+        # calculate adjustment of unit count
         if to_be_benchmark_unit_count < self.benchmark_unit_count:
             delta_benchmark_unit_count = self.benchmark_unit_count - to_be_benchmark_unit_count
             if delta_benchmark_unit_count > self.benchmark_unit_count:
@@ -474,16 +498,17 @@ class SimulationForm(QtGui.QMainWindow):
                                             [last_t, self.benchmark_portfolio_value],
                                             axis=1)  # axis: '1' for inserting on matrix column, '0' for row
 
-        self.data_unit_count.append(self.unit_count)
-        self.data_asset_value.append(self.asset_value)
-        self.data_asset_percentage.append(self.asset_percentage)
-        self.data_cash_value.append(self.cash_value)
-        self.data_cash_percentage.append(self.cash_percentage)
-        self.data_benchmark_unit_count.append(self.benchmark_unit_count)
-        self.data_benchmark_asset_value.append(self.benchmark_asset_value)
-        self.data_benchmark_asset_percentage.append(self.benchmark_asset_percentage)
-        self.data_benchmark_cash_value.append(self.benchmark_cash_value)
-        self.data_benchmark_cash_percentage.append(self.benchmark_cash_percentage)
+        # print str(self.unit_price) + "\t" + str(self.unit_count) + "\t" + str(self.asset_value)
+        # self.data_unit_count.append(self.unit_count)
+        # self.data_asset_value.append(self.asset_value)
+        # self.data_asset_percentage.append(self.asset_percentage)
+        # self.data_cash_value.append(self.cash_value)
+        # self.data_cash_percentage.append(self.cash_percentage)
+        # self.data_benchmark_unit_count.append(self.benchmark_unit_count)
+        # self.data_benchmark_asset_value.append(self.benchmark_asset_value)
+        # self.data_benchmark_asset_percentage.append(self.benchmark_asset_percentage)
+        # self.data_benchmark_cash_value.append(self.benchmark_cash_value)
+        # self.data_benchmark_cash_percentage.append(self.benchmark_cash_percentage)
 
         # update the price graphic with the running data
         line.set_data(running_data)
@@ -582,13 +607,13 @@ class SimulationForm(QtGui.QMainWindow):
         S = S0 * np.exp(X)
         x = np.array([t, S])
 
-        self.data_price = x
+        self.data_price_equation = x
         l, = plot.plot([], [])
         self.refresh_price_plot()
 
         self.function_animation_price = animation.FuncAnimation(self.figure_price, self.update_line_price,
                                                                 self.number_of_frames,
-                                                                fargs=(self.data_price, l),
+                                                                fargs=(self.data_price_equation, l),
                                                                 interval=self.INTERVAL_TIME * 1000,
                                                                 blit=False, repeat=False)
         self.canvas_price.draw()
@@ -658,10 +683,9 @@ class SimulationForm(QtGui.QMainWindow):
         data = ["second,price,portfolio,unit,asset_v,asset_p,cash_v,cash_p,"
                 "b_portfolio,b_unit,b_asset_v,b_asset_p,b_cash_v,b_cash_p,w1,w2"]
 
-        prices = self.data_price[1].tolist()
+        prices = self.data_price_equation[1].tolist()
         portfolio_values = self.data_delta[1].tolist()
         benchmark_portfolio_values = self.data_benchmark[1].tolist()
-
 
         # append initial configuration
         row = [str(self.user_data_frame[0]),
@@ -688,8 +712,10 @@ class SimulationForm(QtGui.QMainWindow):
         # append the the rest of the data
         for t in range(0, len(portfolio_values)):
             row = [str(t * self.INTERVAL_TIME),
-                   str(prices[t]),
-                   str(portfolio_values[t]),
+                   # str(prices[t]),
+                   # str(portfolio_values[t]),
+                   str(self.data_price[t]),
+                   str(self.data_portfolio[t]),
                    str(self.data_unit_count[t]),
                    str(self.data_asset_value[t]),
                    str(self.data_asset_percentage[t]),
